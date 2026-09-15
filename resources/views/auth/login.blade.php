@@ -1,4 +1,4 @@
-<x-layouts.app>
+{{-- <x-layouts.app> --}}
     <x-slot:title>Login Akun</x-slot:title>
 
     <div style="max-width: 400px; margin: 3rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -28,4 +28,4 @@
             </button>
         </form>
     </div>
-</x-layouts.app>
+{{-- </x-layouts.app> --}}

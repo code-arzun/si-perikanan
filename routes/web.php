@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\MasterRolePermissionController;
+use App\Http\Controllers\Admin\TenantManagementController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Tenant\BatchController;
@@ -18,78 +21,116 @@ use Illuminate\Support\Facades\Route;
     // return view('welcome');
 // });
 
-Route::get('/', function () {
-    return redirect('/login');
-});
-
 Route::middleware('guest')->group(function () {
-    Route::get('/register', function () { return view('auth.register'); });
+    
+    // Self-Service Signup / Registrasi Mandiri
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
 
-    Route::get('/login', function () { return view('auth.login'); });
+    // Auth Login (Wajib diberi ->name('login'))
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+
 });
 
-// Route::middleware('auth')->group(function () {
-//     Route::get('/tenant/dashboard', function () { return view('tenant.dashboard'); });
-//     Route::get('/saas/dashboard', function () { return view('tenant.dashboard'); });
-//     Route::post('/logout', [LoginController::class, 'logout']);
-// });
+Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
 
-Route::middleware('auth')->group(function () {
-    // Route::get('/dashboard', function () {
-    //     return auth()->user()->hasRole('saas_admin') ? redirect('/saas/dashboard') : redirect('/tenant/dashboard');
-    // });
+    // --- Dashboard ---
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // --- Manajemen Tenant (CRUD) ---
+    Route::resource('tenants', TenantManagementController::class);
+    Route::prefix('tenants/{tenant}')->name('tenants.')->group(function () {
+        Route::get('/ponds', [TenantManagementController::class, 'ponds'])->name('ponds');
+        Route::get('/batches', [TenantManagementController::class, 'batches'])->name('batches');
+        Route::get('/users', [TenantManagementController::class, 'users'])->name('users');
+        Route::get('/harvests', [TenantManagementController::class, 'harvests'])->name('harvests');
+    });
+
+    // --- Master Roles & Permissions ---
+    Route::controller(MasterRolePermissionController::class)->group(function () {
+        
+        // Roles & Permission Index
+        Route::get('/roles', 'index')->name('roles.index');
+
+        // Permission Actions
+        Route::prefix('permissions')->name('permissions.')->group(function () {
+            Route::post('/', 'storePermission')->name('store');
+            Route::put('/{permission}', 'updatePermission')->name('update');
+            Route::delete('/{permission}', 'destroyPermission')->name('destroy');
+        });
+
+        // Role Actions & Matrix
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::post('/', 'storeRole')->name('store');
+            Route::put('/{role}', 'updateRole')->name('update');
+            Route::delete('/{role}', 'destroyRole')->name('destroy');
+            Route::put('/{role}/permissions', 'updateRolePermissions')->name('updatePermissions');
+        });
+
+    });
+
+});
+
+Route::middleware(['auth', 'tenant.active'])->prefix('tenant')->name('tenant.')->group(function () {
+
+    // --- Core Workspace ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/tenant/dashboard', [DashboardController::class, 'index']);
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    Route::get('/tenant/dashboard', function () { return view('tenant.dashboard'); });
-    Route::get('/saas/dashboard', function () { return view('tenant.dashboard'); });
-    Route::post('/logout', [LoginController::class, 'logout']);
+    // --- Profil Usaha ---
+    Route::controller(TenantProfileController::class)->prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', 'edit')->name('edit');
+        Route::put('/', 'update')->name('update');
+    });
 
-    // Route Manajemen Kolam Stage 2
-    Route::get('/tenant/ponds', [PondController::class, 'index']);
-    Route::get('/tenant/ponds/create', [PondController::class, 'create']);
-    Route::post('/tenant/ponds', [PondController::class, 'store']);
-    Route::delete('/tenant/ponds/{pond}', [PondController::class, 'destroy']);
+    // --- Operasional Tambak ---
+    Route::resource('ponds', PondController::class)->only(['index', 'create', 'store', 'destroy']);
+    Route::resource('batches', BatchController::class)->only(['index', 'create', 'store', 'show']);
+    Route::resource('harvests', HarvestController::class)->only(['index', 'create', 'store']);
 
-    // Route Siklus Budidaya (Batch)
-    Route::get('/tenant/batches', [BatchController::class, 'index']);
-    Route::get('/tenant/batches/create', [BatchController::class, 'create']);
-    Route::post('/tenant/batches', [BatchController::class, 'store']);
-    Route::get('/tenant/batches/{batch}', [BatchController::class, 'show']);
+    // --- Log Harian (Operational Logs Group) ---
+    Route::prefix('logs')->name('logs.')->group(function () {
+        
+        // Pakan
+        Route::controller(DailyFeedLogController::class)->prefix('feed')->name('feed.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
 
-    // Route Profil Usaha
-    Route::get('/tenant/profile', [TenantProfileController::class, 'edit']);
-    Route::put('/tenant/profile', [TenantProfileController::class, 'update']);
+        // Kematian
+        Route::controller(MortalityLogController::class)->prefix('mortality')->name('mortality.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
 
-    // Route Log Pakan
-    Route::get('/tenant/logs/feed', [DailyFeedLogController::class, 'index']);
-    Route::get('/tenant/logs/feed/create', [DailyFeedLogController::class, 'create']);
-    Route::post('/tenant/logs/feed', [DailyFeedLogController::class, 'store']);
+        // Sampling Pertumbuhan
+        Route::controller(SamplingLogController::class)->prefix('sampling')->name('sampling.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
 
-    // Route Log Kematian
-    Route::get('/tenant/logs/mortality', [MortalityLogController::class, 'index']);
-    Route::get('/tenant/logs/mortality/create', [MortalityLogController::class, 'create']);
-    Route::post('/tenant/logs/mortality', [MortalityLogController::class, 'store']);
-    
-    // Route Sampling Pertumbuhan
-    Route::get('/tenant/logs/sampling', [SamplingLogController::class, 'index']);
-    Route::get('/tenant/logs/sampling/create', [SamplingLogController::class, 'create']);
-    Route::post('/tenant/logs/sampling', [SamplingLogController::class, 'store']);
+        // Treatment & Obat
+        Route::controller(TreatmentLogController::class)->prefix('treatment')->name('treatment.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
 
-    // Route Treatment & Obat
-    Route::get('/tenant/logs/treatment', [TreatmentLogController::class, 'index']);
-    Route::get('/tenant/logs/treatment/create', [TreatmentLogController::class, 'create']);
-    Route::post('/tenant/logs/treatment', [TreatmentLogController::class, 'store']);
+        // Kualitas Air
+        Route::controller(WaterQualityLogController::class)->prefix('water')->name('water.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
 
-    // Route Kualitas Air
-    Route::get('/tenant/logs/water', [WaterQualityLogController::class, 'index']);
-    Route::get('/tenant/logs/water/create', [WaterQualityLogController::class, 'create']);
-    Route::post('/tenant/logs/water', [WaterQualityLogController::class, 'store']);
-    
-    // Route Panen Management
-    Route::get('/tenant/harvests', [HarvestController::class, 'index']);
-    Route::get('/tenant/harvests/create', [HarvestController::class, 'create']);
-    Route::post('/tenant/harvests', [HarvestController::class, 'store']);
+    });
+
 });
+
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->withoutMiddleware([\App\Http\Middleware\EnsureTenantIsActive::class]);

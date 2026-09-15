@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // Nama Usaha / Pemilik
             $table->string('phone_or_email')->unique(); // Untuk registrasi cepat
-            $table->enum('status', ['trial', 'active', 'suspended'])->default('trial');
+            $table->enum('status', ['uji coba', 'aktif', 'masa tenggang', 'diblokir'])->default('uji coba');
             
             // Profil Detail Usaha (Nullable untuk perorangan)
             $table->enum('tenant_type', ['individual', 'corporate'])->default('individual');
