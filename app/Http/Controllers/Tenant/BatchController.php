@@ -14,9 +14,9 @@ class BatchController extends Controller
     public function index()
     {
         $batches = Batch::with(['pond', 'fishSpecies'])
-        ->withSum('mortalityLog', 'quantity_pcs')
-        ->withSum('harvestLog', 'total_pcs')
-        ->latest()->get();
+            ->withSum('mortalityLog', 'quantity_pcs')
+            ->withSum('harvestLog', 'total_pcs')
+            ->latest()->get();
 
         return view('tenant.batches.index', compact('batches'));
     }

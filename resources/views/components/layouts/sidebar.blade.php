@@ -12,19 +12,19 @@
         {{-- ========================================== --}}
 
         <div class="nav-section" style="margin-top: 0;">Superadmin Core</div>
-        <a href="/admin/dashboard" class="nav-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">
-            <span>📊</span> Dashboard
-        </a>
+            <a href="/admin/dashboard" class="nav-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">
+                <span>📊</span> Dashboard
+            </a>
 
-        <div class="nav-section">Tenant Management</div>
-        <a href="/admin/tenants" class="nav-item {{ request()->is('admin/tenants*') ? 'active' : '' }}">
-            <span>🏢</span> Client
-        </a>
+            <div class="nav-section">Tenant Management</div>
+            <a href="/admin/tenants" class="nav-item {{ request()->is('admin/tenants*') ? 'active' : '' }}">
+                <span>🏢</span> Client
+            </a>
 
-        <div class="nav-section">System & Security</div>
-        <a href="/admin/roles" class="nav-item {{ request()->is('admin/roles*') ? 'active' : '' }}">
-            <span>🔐</span> Roles & Permissions
-        </a>
+            <div class="nav-section">System & Security</div>
+            <a href="/admin/roles" class="nav-item {{ request()->is('admin/roles*') ? 'active' : '' }}">
+                <span>🔐</span> Roles & Permissions
+            </a>
 
     @else
 
@@ -33,42 +33,50 @@
         {{-- ========================================== --}}
 
         <div class="nav-section" style="margin-top: 0;">Workspace Overview</div>
-        <a href="/tenant/dashboard" class="nav-item {{ request()->is('tenant/dashboard') ? 'active' : '' }}">
-            <span>📊</span> Dashboard
-        </a>
+            <a href="/tenant/dashboard" class="nav-item {{ request()->is('tenant/dashboard') ? 'active' : '' }}">
+                <span>📊</span> Dashboard
+            </a>
 
         <div class="nav-section">Operasional Kolam</div>
-        <a href="/tenant/ponds" class="nav-item {{ request()->is('tenant/ponds*') ? 'active' : '' }}">
-            <span>🏊‍♂️</span> Kolam
-        </a>
-        <a href="/tenant/batches" class="nav-item {{ request()->is('tenant/batches*') ? 'active' : '' }}">
-            <span>🔄</span> Siklus
-        </a>
-        <a href="/tenant/harvests" class="nav-item {{ request()->is('tenant/harvests*') ? 'active' : '' }}">
-            <span>🌾</span> Panen
-        </a>
+            <a href="/tenant/ponds" class="nav-item {{ request()->is('tenant/ponds*') ? 'active' : '' }}">
+                <span>🏊‍♂️</span> Kolam
+            </a>
+            <a href="/tenant/batches" class="nav-item {{ request()->is('tenant/batches*') ? 'active' : '' }}">
+                <span>🔄</span> Siklus
+            </a>
+            <a href="/tenant/harvests" class="nav-item {{ request()->is('tenant/harvests*') ? 'active' : '' }}">
+                <span>🌾</span> Panen
+            </a>
 
-        <div class="nav-section">Harian</div>
-        <a href="/tenant/logs/feed" class="nav-item {{ request()->is('tenant/logs/feed*') ? 'active' : '' }}">
-            <span>🐟</span> Pakan
-        </a>
-        <a href="/tenant/logs/water" class="nav-item {{ request()->is('tenant/logs/water*') ? 'active' : '' }}">
-            <span>💧</span> Kualitas Air
-        </a>
-        <a href="/tenant/logs/sampling" class="nav-item {{ request()->is('tenant/logs/sampling*') ? 'active' : '' }}">
-            <span>📏</span> Sampling
-        </a>
-        <a href="/tenant/logs/mortality" class="nav-item {{ request()->is('tenant/logs/mortality*') ? 'active' : '' }}">
-            <span>⚠️</span> Kematian
-        </a>
-        <a href="/tenant/logs/treatment" class="nav-item {{ request()->is('tenant/logs/treatment*') ? 'active' : '' }}">
-            <span>💊</span> Treatment & Obat
-        </a>
+            <div class="nav-section">Harian</div>
+            <a href="/tenant/logs/feed" class="nav-item {{ request()->is('tenant/logs/feed*') ? 'active' : '' }}">
+                <span>🐟</span> Pakan
+            </a>
+            <a href="/tenant/logs/water" class="nav-item {{ request()->is('tenant/logs/water*') ? 'active' : '' }}">
+                <span>💧</span> Kualitas Air
+            </a>
+            <a href="/tenant/logs/sampling" class="nav-item {{ request()->is('tenant/logs/sampling*') ? 'active' : '' }}">
+                <span>📏</span> Sampling
+            </a>
+            <a href="/tenant/logs/mortality" class="nav-item {{ request()->is('tenant/logs/mortality*') ? 'active' : '' }}">
+                <span>⚠️</span> Kematian
+            </a>
+            <a href="/tenant/logs/treatment" class="nav-item {{ request()->is('tenant/logs/treatment*') ? 'active' : '' }}">
+                <span>💊</span> Treatment & Obat
+            </a>
+
+        <div class="nav-section">Kontak & Keuangan</div>
+            <a href="/tenant/finance" class="nav-item {{ request()->is('tenant/finance*') ? 'active' : '' }}">
+                <span>💰</span> Keuangan
+            </a>
+            <a href="/tenant/contacts" class="nav-item {{ request()->is('tenant/contacts*') ? 'active' : '' }}">
+                <span>📇</span> Kontak
+            </a>
 
         <div class="nav-section">Pengaturan</div>
-        <a href="/tenant/profile" class="nav-item {{ request()->is('tenant/profile*') ? 'active' : '' }}">
-            <span>⚙️</span> Profil
-        </a>
+            <a href="/tenant/profile" class="nav-item {{ request()->is('tenant/profile*') ? 'active' : '' }}">
+                <span>⚙️</span> Profil
+            </a>
 
     @endif
 

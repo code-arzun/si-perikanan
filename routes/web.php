@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\TenantManagementController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Tenant\BatchController;
+use App\Http\Controllers\Tenant\CashTransactionController;
+use App\Http\Controllers\Tenant\ContactController;
 use App\Http\Controllers\Tenant\DailyFeedLogController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\HarvestController;
@@ -128,7 +130,20 @@ Route::middleware(['auth', 'tenant.active'])->prefix('tenant')->name('tenant.')-
             Route::post('/', 'store')->name('store');
         });
 
+        
+
     });
+
+    // Supplier & Buyer Contacts
+    // Route::controller(ContactController::class)->prefix('contacts')->name('contacts.')->group(function () {
+    //     Route::get('/', 'index')->name('index');
+    //     Route::get('/create', 'create')->name('create');
+    //     Route::post('/', 'store')->name('store');
+    // });
+    Route::resource('contacts', ContactController::class);
+
+    // -- Keuangan (Cash Transactions) ---
+    Route::resource('finance', CashTransactionController::class);
 
 });
 
