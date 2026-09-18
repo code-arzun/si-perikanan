@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\FeedTypeController;
+use App\Http\Controllers\Admin\FishSpeciesController;
 use App\Http\Controllers\Admin\MasterRolePermissionController;
+use App\Http\Controllers\Admin\PondTypeController;
 use App\Http\Controllers\Admin\TenantManagementController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -72,6 +75,11 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
         });
 
     });
+    
+    // --- Master Data 
+    Route::resource('fish-species', FishSpeciesController::class)->except(['create', 'edit', 'show']);
+    Route::resource('feed-types', FeedTypeController::class)->except(['create', 'edit', 'show']);
+    Route::resource('pond-types', PondTypeController::class)->except(['create', 'edit', 'show']);
 
 });
 

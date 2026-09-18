@@ -13,6 +13,7 @@ class FishSpecies extends Model
         'name',
         'latin_name',
         'description',
+        'is_active'
     ];
 
     public function batches()

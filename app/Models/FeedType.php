@@ -10,12 +10,9 @@ class FeedType extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code',
         'name',
-        'brand',
-        'protein_percentage',
-        'pellet_size',
         'description',
+        'is_active',
     ];
 
     public function dailyFeedLogs()

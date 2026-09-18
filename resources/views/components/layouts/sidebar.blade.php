@@ -26,6 +26,17 @@
                 <span>🔐</span> Roles & Permissions
             </a>
 
+            <div class="nav-section">Master Data</div>
+            <a href="{{ route('admin.pond-types.index') }}" class="nav-item {{ request()->routeIs('admin.pond-types.*') ? 'active' : '' }}">
+                <span>🏗️</span> Tipe Kolam
+            </a>
+            <a href="{{ route('admin.fish-species.index') }}" class="nav-item {{ request()->routeIs('admin.fish-species.*') ? 'active' : '' }}">
+                <span>🐟</span> Spesies Ikan
+            </a>
+            <a href="{{ route('admin.feed-types.index') }}" class="nav-item {{ request()->routeIs('admin.feed-types.*') ? 'active' : '' }}">
+                <span>🌾</span> Jenis Pakan
+            </a>
+
     @else
 
         {{-- ========================================== --}}
