@@ -11,7 +11,7 @@ class SuperadminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || !Auth::user()->is_superadmin) {
+        if (!Auth::check() || !Auth::user()->hasRole('superadmin')) {
             abort(403, 'Akses khusus Provider Superadmin.');
         }
 

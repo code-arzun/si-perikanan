@@ -51,9 +51,11 @@
                         <td style="padding: 10px; font-weight: bold;">{{ $tenant->name }}</td>
                         <td style="padding: 10px;">{{ $tenant->users_count }} Pengguna</td>
                         <td style="padding: 10px;">
-                            @if($tenant->is_active)
+                            @if($tenant->where('status', 'active')->exists())
                                 <span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; background: #dcfce7; color: #15803d;">Aktif</span>
-                            @else
+                            @elseif($tenant->where('status', 'uji coba')->exists())
+                                <span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b;">Masa Uji Coba</span>
+                            @elseif($tenant->where('status', 'suspended')->exists())
                                 <span style="padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b;">Suspended</span>
                             @endif
                         </td>

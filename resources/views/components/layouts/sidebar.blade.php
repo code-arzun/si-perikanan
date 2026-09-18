@@ -5,7 +5,7 @@
         .nav-section { font-size: 0.72rem; text-transform: uppercase; color: #64748b; font-weight: bold; margin: 1.25rem 0 0.4rem 8px; letter-spacing: 0.5px; }
     </style>
 
-    @if(auth()->check() && auth()->user()->is_superadmin)
+    @if(auth()->check() && auth()->user()->hasRole('superadmin'))
 
         {{-- ========================================== --}}
         {{-- 1. SIDEBAR PROVIDER / SUPERADMIN PANEL      --}}
@@ -37,7 +37,7 @@
                 <span>🌾</span> Jenis Pakan
             </a>
 
-    @else
+    @elseif(auth()->check() && auth()->user()->hasRole('tenant_superadmin'))
 
         {{-- ========================================== --}}
         {{-- 2. SIDEBAR CLIENT / WORKSPACE TENANT        --}}

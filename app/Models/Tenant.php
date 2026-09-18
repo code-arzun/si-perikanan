@@ -15,6 +15,12 @@ class Tenant extends Model
         'phone_or_email',
         'status',
         'tenant_type',
+        'identity_number',
+        'address',
+        'logo_path',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_name',
         'subscription_expires_at',
     ];
 
@@ -28,19 +34,19 @@ class Tenant extends Model
     // Accessor agar pengecekan $tenant->is_active atau $tenant->is_active === true bisa digunakan
     public function getIsActiveAttribute(): bool
     {
-        return $this->status === 'active';
+        return in_array($this->status, ['aktif', 'uji coba']);
     }
 
     // Scope helper untuk query Tenant::active()
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('status', ['aktif', 'uji coba']);
     }
 
     // Scope helper untuk query Tenant::suspended()
     public function scopeSuspended($query)
     {
-        return $query->where('status', '!=', 'active');
+        return $query->where('status', ['masa tenggang', 'diblokir']);
     }
 
     // Relasi ke User

@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash; // Import Hash agar tidak error
 
 class LoginController extends Controller
 {
-    // Menampilkan Form Login (GET /login)
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    // Memproses Login (POST /login)
     public function login(Request $request)
     {
         $request->validate([
@@ -24,60 +24,63 @@ class LoginController extends Controller
 
         $loginInput = $request->input('login');
 
-        // Deteksi apakah input berupa Email, No HP, atau Username
+        // 1. Deteksi jenis input (Email, No HP, atau Username)
         $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) 
             ? 'email' 
             : (is_numeric($loginInput) ? 'phone' : 'username');
 
-        $credentials = [
-            $fieldType => $loginInput,
-            'password'  => $request->password,
-        ];
+        // 2. Cari pengguna
+        $user = User::where($fieldType, $loginInput)->first();
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            $user = Auth::user();
-
-            // 1. Cek jika akun User dinonaktifkan
-            if (isset($user->is_active) && ! $user->is_active) {
-                Auth::logout();
-                $message = 'Akun Anda telah dinonaktifkan.';
-                return $request->wantsJson()
-                    ? response()->json(['message' => $message], 403)
-                    : back()->withErrors(['login' => $message]);
-            }
-
-            // 2. Cek jika Tenant/Tambak tempat user bernaung sedang Suspended/Inactive (Non-Superadmin)
-            if (! $user->is_superadmin && $user->tenant && $user->tenant->status !== 'active') {
-                Auth::logout();
-                $message = 'Akses ditolak. Perusahaan tambak Anda sedang ditangguhkan (Suspended/Inactive).';
-                return $request->wantsJson()
-                    ? response()->json(['message' => $message], 403)
-                    : back()->withErrors(['login' => $message]);
-            }
-
-            // Target Redirect berdasarkan Peran
-            $redirectTarget = $user->is_superadmin ? '/admin/dashboard' : '/tenant/dashboard';
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'message'         => 'Login berhasil!',
-                    'redirect_target' => $redirectTarget,
-                    'user'            => $user->load('roles'),
-                ]);
-            }
-
-            return redirect()->intended($redirectTarget);
+        // Error 1: Akun tidak ditemukan
+        if (! $user) {
+            $message = 'Akun tidak ditemukan. Silakan lakukan pendaftaran terlebih dahulu.';
+            
+            return $request->wantsJson()
+                ? response()->json(['message' => $message], 404)
+                : back()->withErrors(['login' => $message])->withInput();
         }
+
+        // Error 2: Password salah
+        if (! Hash::check($request->password, $user->password)) {
+            $message = 'Password yang Anda masukkan salah.';
+
+            return $request->wantsJson()
+                ? response()->json(['message' => $message], 422)
+                : back()->withErrors(['login' => $message])->withInput();
+        }
+
+        // 3. Cek Status Tenant sebelum mengizinkan login
+        if ($user->tenant && ! $user->tenant->is_active) {
+            $message = match ($user->tenant->status) {
+                'diblokir'      => 'Akses ditolak. Akun perusahaan Anda telah diblokir.',
+                'masa tenggang' => 'Masa uji coba/langganan Anda telah habis.',
+                default         => 'Akses ditolak. Perusahaan Anda sedang tidak aktif.'
+            };
+
+            return $request->wantsJson()
+                ? response()->json(['message' => $message], 403)
+                : back()->withErrors(['login' => $message])->withInput();
+        }
+
+        // 4. Jika semua aman, buat session login
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        // 5. Target Redirect berdasarkan Role Spatie
+        $redirectTarget = $user->hasRole('superadmin') ? '/admin/dashboard' : '/tenant/dashboard';
 
         if ($request->wantsJson()) {
-            return response()->json(['message' => 'Username/No HP/Email atau password salah.'], 422);
+            return response()->json([
+                'message'         => 'Login berhasil!',
+                'redirect_target' => $redirectTarget,
+                'user'            => $user->load('roles'),
+            ]);
         }
 
-        return back()->withErrors(['login' => 'Username/No HP/Email atau password salah.'])->withInput();
+        return redirect()->intended($redirectTarget);
     }
 
-    // Memproses Logout (POST /logout)
     public function logout(Request $request)
     {
         Auth::logout();
@@ -88,6 +91,6 @@ class LoginController extends Controller
             return response()->json(['message' => 'Berhasil logout.']);
         }
 
-        return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
+        return redirect('/')->with('success', 'Anda telah berhasil keluar.');
     }
 }

@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
             RoleAndPermissionSeeder::class,
             MasterDataSeeder::class,
             AdminUserSeeder::class,
-            FeedTypeSeeder::class,
+            // FeedTypeSeeder::class,
         ]);
     }
 }

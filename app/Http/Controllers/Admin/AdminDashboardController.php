@@ -15,7 +15,7 @@ class AdminDashboardController extends Controller
         $totalTenants = Tenant::count();
         $activeTenants = Tenant::where('status', 'active')->count();
         $suspendedTenants = Tenant::where('status', '!=', 'active')->count();
-        $totalUsers = User::where('is_superadmin', false)->count();
+        $totalUsers = User::role('tenant_superadmin')->count();
 
         // 2. Tenant Terbaru
         $latestTenants = Tenant::withCount('users')->latest()->take(5)->get();

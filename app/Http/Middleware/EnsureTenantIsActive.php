@@ -16,24 +16,30 @@ class EnsureTenantIsActive
     {
         $user = Auth::user();
 
-        // 1. Lewatkan jika pengguna adalah Superadmin
-        if ($user && $user->is_superadmin) {
+        // 1. Lewatkan jika pengguna adalah Superadmin Provider
+        if ($user && $user->hasRole('superadmin')) {
             return $next($request);
         }
 
         // 2. Cek apakah user memiliki relasi tenant
         if ($user && $user->tenant) {
             
-            // Jika status tenant bukan 'active' (misal: 'suspended' atau 'inactive')
-            if ($user->tenant->status !== 'active') {
+            // PERBAIKAN: Jika tenant TIDAK aktif (bukan 'aktif' atau 'uji coba')
+            if (! $user->tenant->is_active) {
                 
                 // Logout paksa user dari sesi
                 Auth::guard('web')->logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
+                $message = match ($user->tenant->status) {
+                    'masa tenggang' => 'Akses ditolak. Akun Anda sedang dalam masa tenggang (Grace Period).',
+                    'diblokir'      => 'Akses ditolak. Akun Anda telah diblokir.',
+                    default         => 'Akses ditolak. Akun Anda tidak aktif.',
+                };
+
                 return redirect('/login')->withErrors([
-                    'login' => 'Akses ditolak. Akun atau perusahaan tambak Anda sedang ditangguhkan (Suspended/Inactive). Silakan hubungi Customer Support.'
+                    'login' => $message
                 ]);
             }
         }

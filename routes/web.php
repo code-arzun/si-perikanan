@@ -22,9 +22,9 @@ use App\Http\Controllers\Tenant\TreatmentLogController;
 use App\Http\Controllers\Tenant\WaterQualityLogController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-    // return view('welcome');
-// });
+Route::get('/', function () {
+    return view('welcome');
+});
 
 Route::middleware('guest')->group(function () {
     

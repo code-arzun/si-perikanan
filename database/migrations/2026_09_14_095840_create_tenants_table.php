@@ -13,9 +13,10 @@ return new class extends Migration
             $table->string('name'); // Nama Usaha / Pemilik
             $table->string('phone_or_email')->unique(); // Untuk registrasi cepat
             $table->enum('status', ['uji coba', 'aktif', 'masa tenggang', 'diblokir'])->default('uji coba');
+            // $table->boolean('is_active')->default(true); // Status aktif/inaktif tenant
             
             // Profil Detail Usaha (Nullable untuk perorangan)
-            $table->enum('tenant_type', ['individual', 'corporate'])->default('individual');
+            $table->enum('tenant_type', ['perorangan', 'perusahaan'])->default('perorangan');
             $table->string('identity_number')->nullable(); // NIK (Perorangan) / NPWP (Perusahaan)
             $table->text('address')->nullable();
             $table->string('logo_path')->nullable();

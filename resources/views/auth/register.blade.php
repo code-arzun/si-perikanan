@@ -1,4 +1,4 @@
-<x-layouts.app>
+<x-layouts.guest>
     <x-slot:title>Pendaftaran Akun Baru</x-slot:title>
 
     <div style="max-width: 450px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -52,4 +52,4 @@
             </button>
         </form>
     </div>
-</x-layouts.app>
+</x-layouts.guest>

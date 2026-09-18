@@ -19,7 +19,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
-        'is_active',
+        // 'is_active',
     ];
 
     protected $hidden = [
@@ -32,8 +32,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
-            'is_active'          => 'boolean',
+            // 'is_active'          => 'boolean',
         ];
+    }
+
+    // Helper untuk mengecek apakah user ini Superadmin System (Portal Provider)
+    public function isSuperadmin(): bool
+    {
+        return $this->hasRole('superadmin');
     }
 
     // Relasi ke Tenant

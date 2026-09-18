@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
+
+    // Tambahkan method ini di dalam RegisterController
+    public function showRegistrationForm()
+    {
+        return view('auth.register'); // Sesuaikan 'auth.register' dengan lokasi file Blade form registrasi kamu
+    }
+    
     public function register(RegisterRequest $request)
     {
         $user = DB::transaction(function () use ($request) {
@@ -19,8 +26,8 @@ class RegisterController extends Controller
             $tenant = Tenant::create([
                 'name'           => null,
                 'phone_or_email' => $request->phone,
-                'status'         => 'trial',
-                'tenant_type'    => 'individual',
+                'status'         => 'uji coba',
+                'tenant_type'    => 'perorangan',
             ]);
 
             // 2. Buat User utama pendaftar
@@ -31,7 +38,8 @@ class RegisterController extends Controller
                 'phone'     => $request->phone,
                 'email'     => $request->email ?? null,
                 'password'  => Hash::make($request->password),
-                'is_active' => true,
+                // 'email_verified_at' => now(),
+                // 'is_active' => true,
             ]);
 
             // 3. Assign Role tenant_superadmin
@@ -45,7 +53,7 @@ class RegisterController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Registrasi berhasil!',
+                'message' => 'Selama, registrasi berhasil!',
                 'user'    => $user->load('roles'),
             ], 201);
         }

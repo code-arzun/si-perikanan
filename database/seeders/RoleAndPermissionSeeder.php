@@ -38,13 +38,24 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         // 2. Buat Default Roles Level SaaS (tenant_id = null)
-        $saasAdmin = Role::firstOrCreate(['name' => 'saas_admin', 'guard_name' => 'web', 'tenant_id' => null]);
+        $saasAdmin = Role::firstOrCreate([
+            'name' => 'superadmin',
+            'guard_name' => 'web',
+            'tenant_id' => null]);
         $saasAdmin->givePermissionTo(Permission::all());
 
-        Role::firstOrCreate(['name' => 'saas_sales', 'guard_name' => 'web', 'tenant_id' => null]);
+        Role::firstOrCreate([
+            'name' => 'saas_sales',
+            'guard_name' => 'web',
+            'tenant_id' => null
+        ]);
 
         // 3. Buat Template Roles Level Tenant (tenant_id = null sebagai cetakan)
-        $tenantSuperadmin = Role::firstOrCreate(['name' => 'tenant_superadmin', 'guard_name' => 'web', 'tenant_id' => null]);
+        $tenantSuperadmin = Role::firstOrCreate([
+            'name' => 'tenant_superadmin',
+            'guard_name' => 'web',
+            'tenant_id' => null
+        ]);
         $tenantSuperadmin->givePermissionTo([
             'view-dashboard', 'manage-ponds', 'manage-batches', 
             'log-daily-activity', 'log-harvest', 'manage-finance', 'manage-staff'
