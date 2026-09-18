@@ -20,6 +20,7 @@ use App\Http\Controllers\Tenant\PondController;
 use App\Http\Controllers\Tenant\SamplingLogController;
 use App\Http\Controllers\Tenant\TenantProfileController;
 use App\Http\Controllers\Tenant\TreatmentLogController;
+use App\Http\Controllers\Tenant\UserController;
 use App\Http\Controllers\Tenant\WaterQualityLogController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,7 +40,7 @@ Route::middleware('guest')->group(function () {
 
 });
 
-Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['role:superadmin'])->prefix('admin')->name('admin.')->group(function () {
 
     // --- Dashboard ---
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -85,75 +86,72 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
 
 });
 
-Route::middleware(['auth', 'tenant.active'])->prefix('tenant')->name('tenant.')->group(function () {
+Route::middleware(['auth', 'tenant'])->prefix('tenant')->name('tenant.')->group(function () {
 
-    // --- Core Workspace ---
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
-    // --- Profil Usaha ---
-    Route::controller(TenantProfileController::class)->prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', 'edit')->name('edit');
-        Route::put('/', 'update')->name('update');
+    // --- Akses Bersama (Semua Role Tenant Bisa Masuk) ---
+    Route::middleware(['role:tenant_superadmin|tenant_admin_keuangan|tenant_staf_kolam'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+        
+        Route::controller(TenantProfileController::class)->prefix('profile')->name('profile.')->group(function () {
+            Route::get('/', 'edit')->name('edit');
+            Route::put('/', 'update')->name('update');
+        });
     });
 
-    // --- Operasional Tambak ---
-    Route::resource('ponds', PondController::class)->only(['index', 'create', 'store', 'destroy']);
-    Route::resource('batches', BatchController::class)->only(['index', 'create', 'store', 'show']);
-    Route::resource('harvests', HarvestController::class)->only(['index', 'create', 'store']);
+    // --- Khusus Operasional Tambak (Superadmin & Staf Kolam) ---
+    Route::middleware(['role:tenant_superadmin|tenant_staf_kolam'])->group(function () {
+        Route::resource('ponds', PondController::class)->only(['index', 'create', 'store', 'destroy']);
+        Route::resource('batches', BatchController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('harvests', HarvestController::class)->only(['index', 'create', 'store']);
 
-    // --- Log Harian (Operational Logs Group) ---
-    Route::prefix('logs')->name('logs.')->group(function () {
-        
-        // Pakan
-        Route::controller(DailyFeedLogController::class)->prefix('feed')->name('feed.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
+        // Log Harian
+        Route::prefix('logs')->name('logs.')->group(function () {
+            Route::controller(DailyFeedLogController::class)->prefix('feed')->name('feed.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+            });
+
+            Route::controller(MortalityLogController::class)->prefix('mortality')->name('mortality.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+            });
+
+            Route::controller(SamplingLogController::class)->prefix('sampling')->name('sampling.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+            });
+
+            Route::controller(TreatmentLogController::class)->prefix('treatment')->name('treatment.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+            });
+
+            Route::controller(WaterQualityLogController::class)->prefix('water')->name('water.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+            });
         });
-
-        // Kematian
-        Route::controller(MortalityLogController::class)->prefix('mortality')->name('mortality.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-        });
-
-        // Sampling Pertumbuhan
-        Route::controller(SamplingLogController::class)->prefix('sampling')->name('sampling.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-        });
-
-        // Treatment & Obat
-        Route::controller(TreatmentLogController::class)->prefix('treatment')->name('treatment.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-        });
-
-        // Kualitas Air
-        Route::controller(WaterQualityLogController::class)->prefix('water')->name('water.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-        });
-
-        
-
     });
 
-    // Supplier & Buyer Contacts
-    // Route::controller(ContactController::class)->prefix('contacts')->name('contacts.')->group(function () {
-    //     Route::get('/', 'index')->name('index');
-    //     Route::get('/create', 'create')->name('create');
-    //     Route::post('/', 'store')->name('store');
-    // });
-    Route::resource('contacts', ContactController::class);
+    // --- Khusus Keuangan & Kontak (Superadmin & Admin Keuangan) ---
+    Route::middleware(['role:tenant_superadmin|tenant_admin_keuangan'])->group(function () {
+        Route::resource('contacts', ContactController::class);
+        Route::resource('finance', CashTransactionController::class);
+    });
 
-    // -- Keuangan (Cash Transactions) ---
-    Route::resource('finance', CashTransactionController::class);
+    // --- Khusus Manajemen Staf (Hanya Tenant Superadmin) ---
+    Route::middleware(['role:tenant_superadmin'])->group(function () {
+        Route::resource('employees', UserController::class)
+            ->names('employees')
+            ->parameters(['employees' => 'user'])
+            ->except(['create', 'edit', 'show']);
+    });
 
 });
 

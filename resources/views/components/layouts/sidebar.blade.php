@@ -91,6 +91,9 @@
             <a href="/tenant/profile" class="nav-item {{ request()->is('tenant/profile*') ? 'active' : '' }}">
                 <span>⚙️</span> Profil
             </a>
+            <a href="/tenant/employees" class="nav-item {{ request()->is('tenant/employees*') ? 'active' : '' }}">
+                <span>👥</span> Karyawan
+            </a>
 
     @endif
 

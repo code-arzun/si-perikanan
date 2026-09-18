@@ -38,7 +38,7 @@ class EnsureTenantIsActive
                     default         => 'Akses ditolak. Akun Anda tidak aktif.',
                 };
 
-                return redirect('/login')->withErrors([
+                return redirect('/')->withErrors([
                     'login' => $message
                 ]);
             }
