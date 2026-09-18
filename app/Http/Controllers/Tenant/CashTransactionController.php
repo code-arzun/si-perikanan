@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\CashTransaction;
+use App\Models\CashflowCategory; // Import Model
 use App\Models\Contact;
 use App\Http\Requests\Tenant\CashTransactionRequest;
 use Illuminate\Http\Request;
@@ -14,7 +15,8 @@ class CashTransactionController extends Controller
     {
         $tenantId = auth()->user()->tenant_id;
 
-        $query = CashTransaction::with('contact')->where('tenant_id', $tenantId);
+        // Eager load relasi category & contact
+        $query = CashTransaction::with(['contact', 'category'])->where('tenant_id', $tenantId);
 
         if ($request->filled('type') && in_array($request->type, ['income', 'expense'])) {
             $query->where('type', $request->type);
@@ -27,10 +29,18 @@ class CashTransactionController extends Controller
         $totalExpense = CashTransaction::where('tenant_id', $tenantId)->where('type', 'expense')->sum('amount');
         $balance      = $totalIncome - $totalExpense;
 
-        // Ambil kontak untuk dropdown di form modal/tambah
-        $contacts = Contact::where('tenant_id', $tenantId)->get();
+        // Data untuk Form Modal
+        $contacts   = Contact::where('tenant_id', $tenantId)->get();
+        $categories = CashflowCategory::orderBy('type')->orderBy('keterangan')->orderBy('name')->get();
 
-        return view('tenant.finance.index', compact('transactions', 'totalIncome', 'totalExpense', 'balance', 'contacts'));
+        return view('tenant.finance.index', compact(
+            'transactions', 
+            'totalIncome', 
+            'totalExpense', 
+            'balance', 
+            'contacts', 
+            'categories'
+        ));
     }
 
     public function store(CashTransactionRequest $request)

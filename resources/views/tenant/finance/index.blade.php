@@ -1,178 +1,268 @@
 <x-layouts.app>
-    <x-slot:title>Arus Kas & Keuangan - Workspace Tenant</x-slot:title>
+    <x-slot:title>Pencatatan Transaksi Kas</x-slot:title>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <div>
-            <h2 style="margin: 0; color: #1e293b; font-size: 1.5rem;">💰 Arus Kas & Keuangan</h2>
-            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.9rem;">
-                Pencatatan pemasukan dan pengeluaran operasional tambak secara real-time.
-            </p>
-        </div>
-    </div>
-
-    {{-- Pesan Sukses Notifikasi --}}
-    @if(session('success'))
-        <div style="background: #dcfce7; border: 1px solid #86efac; color: #15803d; padding: 12px 16px; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.9rem;">
-            ✅ {{ session('success') }}
-        </div>
-    @endif
-
-    {{-- KPI RINGKASAN KEUANGAN --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-        <div style="background: white; border-radius: 8px; padding: 1.25rem; border-left: 4px solid #16a34a; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <small style="color: #64748b; font-weight: bold;">TOTAL PEMASUKAN</small>
-            <h3 style="margin: 8px 0 0 0; color: #15803d; font-size: 1.4rem;">Rp {{ number_format($totalIncome, 0, ',', '.') }}</h3>
-        </div>
-        <div style="background: white; border-radius: 8px; padding: 1.25rem; border-left: 4px solid #dc2626; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <small style="color: #64748b; font-weight: bold;">TOTAL PENGELUARAN</small>
-            <h3 style="margin: 8px 0 0 0; color: #b91c1c; font-size: 1.4rem;">Rp {{ number_format($totalExpense, 0, ',', '.') }}</h3>
-        </div>
-        <div style="background: white; border-radius: 8px; padding: 1.25rem; border-left: 4px solid #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <small style="color: #64748b; font-weight: bold;">SALDO / SISA KAS</small>
-            <h3 style="margin: 8px 0 0 0; color: #1d4ed8; font-size: 1.4rem;">Rp {{ number_format($balance, 0, ',', '.') }}</h3>
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; align-items: start;">
+    <style>
+        .container-fluid { padding: 1.5rem; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; }
         
-        {{-- FORM INPUT TRANSAKSI BARU --}}
-        <div style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <h3 style="margin-top: 0; margin-bottom: 1rem; color: #0f172a; font-size: 1.05rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-                ➕ Catat Transaksi Baru
-            </h3>
+        /* Summary Cards */
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .summary-card { background: white; border-radius: 10px; border: 1px solid #e2e8f0; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .summary-label { font-size: 0.875rem; color: #64748b; font-weight: 500; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.5rem; font-weight: 700; margin: 0; }
+        .text-income { color: #16a34a; }
+        .text-expense { color: #dc2626; }
+        .text-balance { color: #2563eb; }
 
+        /* Buttons & Table */
+        .btn-add { background: #2563eb; color: white; border: none; padding: 0.625rem 1.25rem; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-add:hover { background: #1d4ed8; }
+        .card { background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
+        .table th { background: #f8fafc; padding: 0.875rem 1rem; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+        .table td { padding: 0.875rem 1rem; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+        .table tr:hover { background: #f8fafc; }
+
+        /* Badges & Actions */
+        .badge { display: inline-block; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-income { background: #dcfce7; color: #15803d; }
+        .badge-expense { background: #fee2e2; color: #b91c1c; }
+        .btn-delete { background: #fee2e2; color: #b91c1c; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.8125rem; font-weight: 600; border: none; cursor: pointer; }
+        .btn-delete:hover { background: #fca5a5; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 1000; justify-content: center; align-items: center; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: white; width: 100%; max-width: 500px; border-radius: 12px; padding: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+        .modal-title { font-size: 1.125rem; font-weight: 700; color: #0f172a; margin: 0; }
+        .modal-close { background: none; border: none; font-size: 1.25rem; color: #64748b; cursor: pointer; }
+
+        /* Form */
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.375rem; color: #334155; }
+        .form-control { width: 100%; padding: 0.625rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none; }
+        .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .form-footer { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+        .alert { padding: 0.875rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-success { background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; }
+        .alert-danger { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+    </style>
+
+    <div class="container-fluid">
+        <!-- Header Page -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Transaksi Kas Operasional</h1>
+                <p style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem;">Catat pemasukan dan pengeluaran keuangan usaha Anda.</p>
+            </div>
+            <button type="button" class="btn-add" onclick="openModal('addModal')">
+                <span>+</span> Catat Transaksi
+            </button>
+        </div>
+
+        <!-- Alert Notification -->
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul style="margin: 0; padding-left: 1.25rem;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <!-- Financial Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Total Pemasukan</div>
+                <div class="summary-value text-income">Rp {{ number_format($totalIncome, 0, ',', '.') }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Total Pengeluaran</div>
+                <div class="summary-value text-expense">Rp {{ number_format($totalExpense, 0, ',', '.') }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Saldo Kas</div>
+                <div class="summary-value text-balance">Rp {{ number_format($balance, 0, ',', '.') }}</div>
+            </div>
+        </div>
+
+        <!-- Table Transactions -->
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">Tanggal</th>
+                            <th>Tipe</th>
+                            <th>Kategori</th>
+                            <th>Kontak / Pihak Ke-3</th>
+                            <th>Deskripsi</th>
+                            <th style="text-align: right;">Nominal</th>
+                            <th style="width: 80px; text-align: center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($transactions as $item)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($item->transaction_date)->format('d/m/Y') }}</td>
+                                <td>
+                                    <span class="badge badge-{{ $item->type == 'income' ? 'income' : 'expense' }}">
+                                        {{ $item->type == 'income' ? 'Pemasukan' : 'Pengeluaran' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ $item->category?->full_name ?? '-' }}</strong>
+                                </td>
+                                <td>{{ $item->contact?->name ?? '-' }}</td>
+                                <td>{{ $item->description ?? '-' }}</td>
+                                <td style="text-align: right; font-weight: 600;" class="{{ $item->type == 'income' ? 'text-income' : 'text-expense' }}">
+                                    {{ $item->type == 'income' ? '+' : '-' }} Rp {{ number_format($item->amount, 0, ',', '.') }}
+                                </td>
+                                <td style="text-align: center;">
+                                    <form action="{{ route('tenant.finance.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus catatan transaksi ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-delete">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                                    Belum ada transaksi kas yang dicatat.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div style="margin-top: 1rem;">
+            {{ $transactions->links() }}
+        </div>
+    </div>
+
+    <!-- Modal Catat Transaksi Kas -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Catat Transaksi Kas Baru</h3>
+                <button type="button" class="modal-close" onclick="closeModal('addModal')">&times;</button>
+            </div>
             <form action="{{ route('tenant.finance.store') }}" method="POST">
                 @csrf
-
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px;">
-                        Jenis Transaksi <span style="color: #ef4444;">*</span>
-                    </label>
-                    <select name="type" required style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background: white;">
-                        <option value="expense" {{ old('type') == 'expense' ? 'selected' : '' }}>🔴 Pengeluaran (Expense)</option>
-                        <option value="income" {{ old('type') == 'income' ? 'selected' : '' }}>🟢 Pemasukan (Income)</option>
+                
+                <div class="form-group">
+                    <label class="form-label">Jenis Transaksi *</label>
+                    <select name="type" id="transaction_type" class="form-control" onchange="filterCategoriesByTransactionType()" required>
+                        <option value="expense">Pengeluaran</option>
+                        <option value="income">Pemasukan</option>
                     </select>
                 </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px;">
-                        Nominal (Rp) <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="number" name="amount" value="{{ old('amount') }}" placeholder="Contoh: 500000" required style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
-                    @error('amount')
-                        <small style="color: #ef4444;">{{ $message }}</small>
-                    @enderror
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px;">
-                        Tanggal Transaksi <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="date" name="transaction_date" value="{{ old('transaction_date', date('Y-m-d')) }}" required style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px;">
-                        Kategori <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="text" name="category" value="{{ old('category') }}" placeholder="Contoh: Pembelian Pakan, Hasil Panen, Listrik" required style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
-                </div>
-
-                {{-- DROPDOWN RELASI KONTAK SUPPLIER / BUYER --}}
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px;">
-                        Pihak Terkait (Supplier / Buyer)
-                    </label>
-                    <select name="contact_id" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background: white;">
-                        <option value="">-- Tidak Ada / Umum --</option>
-                        @foreach($contacts as $contact)
-                            <option value="{{ $contact->id }}" {{ old('contact_id') == $contact->id ? 'selected' : '' }}>
-                                {{ $contact->name }} ({{ ucfirst($contact->type) }})
+                <div class="form-group">
+                    <label class="form-label">Kategori Cashflow *</label>
+                    <select name="cashflow_category_id" id="cashflow_category_id" class="form-control" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" 
+                                    data-type="{{ $category->type == 'pemasukan' ? 'income' : 'expense' }}">
+                                {{ $category->full_name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div style="margin-bottom: 1.25rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: bold; color: #334155; margin-bottom: 4px;">Keterangan Opsional</label>
-                    <textarea name="description" rows="2" placeholder="Catatan tambahan..." style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; resize: vertical;">{{ old('description') }}</textarea>
+                <div class="form-group">
+                    <label class="form-label">Tanggal Transaksi *</label>
+                    <input type="date" name="transaction_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                 </div>
 
-                <button type="submit" style="width: 100%; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
-                    Simpan Transaksi
-                </button>
+                <div class="form-group">
+                    <label class="form-label">Nominal (Rp) *</label>
+                    <input type="number" name="amount" class="form-control" placeholder="Contoh: 1500000" min="0" step="1000" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Kontak / Pihak Terkait (Pemasok/Pembeli)</label>
+                    <select name="contact_id" class="form-control">
+                        <option value="">-- Tanpa Kontak / Umum --</option>
+                        @foreach($contacts as $contact)
+                            <option value="{{ $contact->id }}">{{ $contact->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Catatan / Deskripsi</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Keterangan Rinci Transaksi..."></textarea>
+                </div>
+
+                <div class="form-footer">
+                    <button type="button" class="btn-action" style="background: #e2e8f0; padding: 0.625rem 1rem; border-radius: 6px; border: none; cursor: pointer;" onclick="closeModal('addModal')">Batal</button>
+                    <button type="submit" class="btn-add">Simpan Transaksi</button>
+                </div>
             </form>
         </div>
-
-        {{-- TABEL RIWAYAT TRANSAKSI KAS --}}
-        <div style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            
-            <div style="display: flex; gap: 8px; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
-                <a href="{{ route('tenant.finance.index') }}" style="padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: bold; {{ !request('type') ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #475569;' }}">
-                    Semua Transaksi
-                </a>
-                <a href="{{ route('tenant.finance.index', ['type' => 'income']) }}" style="padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: bold; {{ request('type') == 'income' ? 'background: #16a34a; color: white;' : 'background: #f1f5f9; color: #475569;' }}">
-                    🟢 Pemasukan
-                </a>
-                <a href="{{ route('tenant.finance.index', ['type' => 'expense']) }}" style="padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: bold; {{ request('type') == 'expense' ? 'background: #dc2626; color: white;' : 'background: #f1f5f9; color: #475569;' }}">
-                    🔴 Pengeluaran
-                </a>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <thead>
-                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
-                        <th style="padding: 10px;">Tanggal</th>
-                        <th style="padding: 10px;">Kategori</th>
-                        <th style="padding: 10px;">Pihak Terkait</th>
-                        <th style="padding: 10px; text-align: right;">Nominal</th>
-                        <th style="padding: 10px; text-align: center;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($transactions as $trx)
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 10px; color: #64748b; font-size: 0.85rem;">
-                                {{ \Carbon\Carbon::parse($trx->transaction_date)->format('d M Y') }}
-                            </td>
-                            <td style="padding: 10px; font-weight: bold; color: #1e293b;">
-                                {{ $trx->category }}
-                                @if($trx->description)
-                                    <div style="font-size: 0.78rem; font-weight: normal; color: #64748b;">{{ $trx->description }}</div>
-                                @endif
-                            </td>
-                            <td style="padding: 10px; color: #334155;">
-                                {{ $trx->contact->name ?? '-' }}
-                            </td>
-                            <td style="padding: 10px; text-align: right; font-weight: bold; {{ $trx->type === 'income' ? 'color: #16a34a;' : 'color: #dc2626;' }}">
-                                {{ $trx->type === 'income' ? '+' : '-' }} Rp {{ number_format($trx->amount, 0, ',', '.') }}
-                            </td>
-                            <td style="padding: 10px; text-align: center;">
-                                <form action="{{ route('tenant.finance.destroy', $trx->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus catatan transaksi ini?');" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" title="Hapus Transaksi" style="background: #ef4444; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 13px;">
-                                        🗑️
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" style="padding: 2rem; text-align: center; color: #94a3b8;">
-                                Belum ada catatan transaksi keuangan.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-
-            @if(is_object($transactions) && method_exists($transactions, 'links'))
-                <div style="margin-top: 1rem;">
-                    {{ $transactions->links() }}
-                </div>
-            @endif
-        </div>
-
     </div>
+
+    <!-- Script Dynamic Category Filter -->
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            filterCategoriesByTransactionType(); // Filter ulang saat modal dibuka
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        /**
+         * Otomatis menyaring opsi dropdown kategori berdasarkan 
+         * Jenis Transaksi yang dipilih (Pengeluaran / Pemasukan)
+         */
+        function filterCategoriesByTransactionType() {
+            const selectedType = document.getElementById('transaction_type').value; // 'income' atau 'expense'
+            const categorySelect = document.getElementById('cashflow_category_id');
+            const options = categorySelect.querySelectorAll('option');
+
+            let firstValidOptionSet = false;
+
+            options.forEach(option => {
+                if (!option.value) return; // Skip placeholder
+
+                const categoryType = option.getAttribute('data-type');
+
+                if (categoryType === selectedType) {
+                    option.style.display = 'block';
+                    option.disabled = false;
+                    
+                    // Pilih opsi valid pertama secara otomatis jika belum ada yang terpilih
+                    if (!firstValidOptionSet) {
+                        option.selected = true;
+                        firstValidOptionSet = true;
+                    }
+                } else {
+                    option.style.display = 'none';
+                    option.disabled = true;
+                }
+            });
+        }
+
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('active');
+            }
+        });
+    </script>
 </x-layouts.app>

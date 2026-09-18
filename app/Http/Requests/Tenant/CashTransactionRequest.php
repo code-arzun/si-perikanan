@@ -19,12 +19,12 @@ class CashTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'             => 'required|in:income,expense',
-            'amount'           => 'required|numeric|min:1',
-            'transaction_date' => 'required|date',
-            'category'         => 'required|string|max:100',
-            'contact_id'       => 'nullable|exists:contacts,id',
-            'description'      => 'nullable|string',
+            'contact_id'           => ['nullable', 'exists:contacts,id'],
+            'cashflow_category_id' => ['required', 'exists:cashflow_categories,id'],
+            'type'                 => ['required', 'in:income,expense'],
+            'amount'               => ['required', 'numeric', 'min:0'],
+            'transaction_date'     => ['required', 'date'],
+            'description'          => ['nullable', 'string', 'max:1000'],
         ];
     }
 

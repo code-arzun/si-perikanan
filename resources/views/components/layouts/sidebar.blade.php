@@ -36,6 +36,9 @@
             <a href="{{ route('admin.feed-types.index') }}" class="nav-item {{ request()->routeIs('admin.feed-types.*') ? 'active' : '' }}">
                 <span>🌾</span> Jenis Pakan
             </a>
+            <a href="{{ route('admin.cashflow-categories.index') }}" class="nav-item {{ request()->routeIs('admin.cashflow-categories.*') ? 'active' : '' }}">
+                <span>💰</span> Kategori Keuangan
+            </a>
 
     @elseif(auth()->check() && auth()->user()->hasRole('tenant_superadmin'))
 

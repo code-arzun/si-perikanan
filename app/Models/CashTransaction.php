@@ -12,10 +12,10 @@ class CashTransaction extends Model
     protected $fillable = [
         'tenant_id',
         'contact_id',
+        'cashflow_category_id', // Replacing string 'category'
         'type',
         'amount',
         'transaction_date',
-        'category',
         'description',
     ];
 
@@ -27,5 +27,11 @@ class CashTransaction extends Model
     public function contact()
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    // Relasi ke Master Kategori Cashflow
+    public function category()
+    {
+        return $this->belongsTo(CashflowCategory::class, 'cashflow_category_id');
     }
 }

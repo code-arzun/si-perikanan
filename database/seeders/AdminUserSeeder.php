@@ -25,6 +25,6 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        $admin->assignRole('saas_admin');
+        $admin->assignRole('superadmin'); // Pastikan role 'superadmin' sudah ada di tabel roles
     }
 }

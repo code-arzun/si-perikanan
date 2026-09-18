@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\CashflowCategoryController;
 use App\Http\Controllers\Admin\FeedTypeController;
 use App\Http\Controllers\Admin\FishSpeciesController;
 use App\Http\Controllers\Admin\MasterRolePermissionController;
@@ -80,6 +81,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::resource('fish-species', FishSpeciesController::class)->except(['create', 'edit', 'show']);
     Route::resource('feed-types', FeedTypeController::class)->except(['create', 'edit', 'show']);
     Route::resource('pond-types', PondTypeController::class)->except(['create', 'edit', 'show']);
+    Route::resource('cashflow-categories', CashflowCategoryController::class)->except(['create', 'edit', 'show']);
 
 });
 
