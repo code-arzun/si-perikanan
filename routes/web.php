@@ -111,6 +111,8 @@ Route::middleware(['auth', 'tenant'])->prefix('tenant')->name('tenant.')->group(
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
+                Route::get('/bulk', [DailyFeedLogController::class, 'bulkCreate'])->name('bulk-create');
+                Route::post('/bulk', [DailyFeedLogController::class, 'bulkStore'])->name('bulk-store');
             });
 
             Route::controller(MortalityLogController::class)->prefix('mortality')->name('mortality.')->group(function () {

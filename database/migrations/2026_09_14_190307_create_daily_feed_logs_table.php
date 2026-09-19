@@ -16,8 +16,13 @@ return new class extends Migration
             $table->foreignId('logged_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->date('feed_date');
-            $table->time('feed_time')->comment('Waktu pemberian pakan, misal 08:00');
-            $table->decimal('amount_kg', 8, 2)->comment('Jumlah pakan (Kg)');
+            // $table->time('feed_time')->comment('Waktu pencatatan/pemberian pakan terakhir');
+            
+            // Rincian Kuantitas Pakan Harian
+            $table->decimal('amount_per_feed_g', 10, 2)->nullable()->comment('Jumlah pakan per sekali pemberian (Gram)');
+            $table->unsignedInteger('feeding_frequency')->default(1)->comment('Frekuensi pemberian pakan dalam sehari');
+            $table->decimal('amount_kg', 10, 2)->comment('Total pakan harian (Kg)');
+            
             $table->enum('appetite_response', ['sangat_baik', 'baik', 'kurang', 'buruk'])->default('baik');
             $table->text('notes')->nullable();
 

@@ -8,7 +8,7 @@ class FeedTypeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->is_superadmin;
+        return auth()->check() && auth()->user()->hasrole('superadmin|admin');
     }
 
     public function rules(): array

@@ -5,12 +5,12 @@
         .nav-section { font-size: 0.72rem; text-transform: uppercase; color: #64748b; font-weight: bold; margin: 1.25rem 0 0.4rem 8px; letter-spacing: 0.5px; }
     </style>
 
-    @if(auth()->check() && auth()->user()->hasRole('superadmin'))
-
-        {{-- ========================================== --}}
-        {{-- 1. SIDEBAR PROVIDER / SUPERADMIN PANEL      --}}
-        {{-- ========================================== --}}
-
+    {{-- ========================================== --}}
+    {{-- 1. SIDEBAR PROVIDER / SUPERADMIN PANEL      --}}
+    {{-- ========================================== --}}
+    
+    {{-- @if(auth()->check() && auth()->user()->hasRole('superadmin')) --}}
+    @hasrole('superadmin')
         <div class="nav-section" style="margin-top: 0;">Superadmin Core</div>
             <a href="/admin/dashboard" class="nav-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">
                 <span>📊</span> Dashboard
@@ -39,18 +39,20 @@
             <a href="{{ route('admin.cashflow-categories.index') }}" class="nav-item {{ request()->routeIs('admin.cashflow-categories.*') ? 'active' : '' }}">
                 <span>💰</span> Kategori Keuangan
             </a>
+    @endhasrole
 
-    @elseif(auth()->check() && auth()->user()->hasRole('tenant_superadmin'))
+    {{-- @elseif(auth()->check() && auth()->user()->hasRole('tenant_superadmin')) --}}
 
         {{-- ========================================== --}}
         {{-- 2. SIDEBAR CLIENT / WORKSPACE TENANT        --}}
         {{-- ========================================== --}}
-
+    @hasrole('tenant_superadmin')
         <div class="nav-section" style="margin-top: 0;">Workspace Overview</div>
             <a href="/tenant/dashboard" class="nav-item {{ request()->is('tenant/dashboard') ? 'active' : '' }}">
                 <span>📊</span> Dashboard
             </a>
-
+    @endhasrole
+    @hasanyrole(['tenant_superadmin', 'tenant_staf_kolam'])
         <div class="nav-section">Operasional Kolam</div>
             <a href="/tenant/ponds" class="nav-item {{ request()->is('tenant/ponds*') ? 'active' : '' }}">
                 <span>🏊‍♂️</span> Kolam
@@ -78,7 +80,10 @@
             <a href="/tenant/logs/treatment" class="nav-item {{ request()->is('tenant/logs/treatment*') ? 'active' : '' }}">
                 <span>💊</span> Treatment & Obat
             </a>
+    @endhasanyrole
 
+    {{-- @elseif(auth()->check() && auth()->user()->hasRole('tenant_superadmin'|'tenant_staf_kolam')) --}}
+    @hasanyrole(['tenant_superadmin', 'tenant_staf_keuangan'])
         <div class="nav-section">Kontak & Keuangan</div>
             <a href="/tenant/finance" class="nav-item {{ request()->is('tenant/finance*') ? 'active' : '' }}">
                 <span>💰</span> Keuangan
@@ -86,15 +91,18 @@
             <a href="/tenant/contacts" class="nav-item {{ request()->is('tenant/contacts*') ? 'active' : '' }}">
                 <span>📇</span> Kontak
             </a>
+    @endhasanyrole
 
-        <div class="nav-section">Pengaturan</div>
+    @hasrole('tenant_superadmin')
+            <div class="nav-section">Pengaturan</div>
             <a href="/tenant/profile" class="nav-item {{ request()->is('tenant/profile*') ? 'active' : '' }}">
                 <span>⚙️</span> Profil
             </a>
             <a href="/tenant/employees" class="nav-item {{ request()->is('tenant/employees*') ? 'active' : '' }}">
                 <span>👥</span> Karyawan
             </a>
+    @endhasanyrole
 
-    @endif
+    {{-- @endif --}}
 
 </aside>

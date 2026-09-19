@@ -10,6 +10,8 @@
         .app-wrapper { display: flex; flex: 1; margin-top: 60px; }
         .app-content { flex: 1; margin-left: 240px; padding: 2rem; min-height: calc(100vh - 120px); }
     </style>
+    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
 </head>
 <body>
 

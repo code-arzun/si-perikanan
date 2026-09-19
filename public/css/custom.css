@@ -1,0 +1,47 @@
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; }
+.btn-add { background: #2563eb; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; text-decoration: none; }
+.btn-add:hover { background: #1d4ed8; }
+
+.batch-accordion-list { display: flex; flex-direction: column; gap: 1rem; }
+.batch-card { background: white; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+.batch-header { padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: white; transition: background 0.2s; user-select: none; }
+.batch-header:hover { background: #f8fafc; }
+.batch-info { display: flex; align-items: center; gap: 1rem; }
+.batch-title { font-size: 1.125rem; font-weight: 700; color: #0f172a; margin: 0; }
+.batch-sub { font-size: 0.8125rem; color: #2563eb; font-weight: 600; margin-top: 0.125rem; }
+
+.stats-group { display: flex; align-items: center; gap: 1.5rem; }
+.stat-item { text-align: right; }
+.stat-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+.stat-value { font-size: 1.125rem; font-weight: 700; color: #0f172a; }
+.stat-today { color: #16a34a; }
+
+.toggle-icon { font-size: 1rem; color: #64748b; transition: transform 0.3s ease; }
+.batch-card.active .toggle-icon { transform: rotate(180deg); }
+
+.batch-content { display: none; border-top: 1px solid #e2e8f0; background: #fafafa; padding: 1rem; }
+.batch-card.active .batch-content { display: block; }
+
+.table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; font-size: 0.875rem; border: 1px solid #e2e8f0; }
+.table th { background: #f1f5f9; padding: 10px 12px; font-weight: 600; color: #475569; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+
+.badge-response { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: capitalize; }
+.badge-good { background: #dcfce7; color: #15803d; }
+.badge-bad { background: #fee2e2; color: #991b1b; }
+        
+.btn-add-sm {
+    background: #2563eb;
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.btn-add-sm:hover { 
+    background: #1d4ed8; 
+}
