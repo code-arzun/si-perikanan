@@ -14,7 +14,7 @@ class MortalityLogRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'total_weight_kg' => $this->total_weight_kg ? str_replace(',', '.', $this->total_weight_kg) : null,
+            'total_weight_g' => $this->total_weight_g ? str_replace(',', '.', $this->total_weight_g) : null,
         ]);
     }
 
@@ -24,7 +24,7 @@ class MortalityLogRequest extends FormRequest
             'batch_id'        => ['required', 'exists:batches,id'],
             'log_date'        => ['required', 'date'],
             'quantity_pcs'    => ['required', 'integer', 'min:1'],
-            'total_weight_kg' => ['nullable', 'numeric', 'min:0'],
+            'total_weight_g'  => ['nullable', 'numeric', 'min:0'],
             'indication'      => ['nullable', 'string', 'max:255'],
             'action_taken'    => ['nullable', 'string'],
         ];

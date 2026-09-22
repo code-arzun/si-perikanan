@@ -50,6 +50,11 @@ class Batch extends Model
         return $this->belongsTo(Pond::class);
     }
 
+    public function waterQualityLog()
+    {
+        return $this->hasMany(WaterQualityLog::class);
+    }
+
     public function fishSpecies()
     {
         return $this->belongsTo(FishSpecies::class);
@@ -68,6 +73,11 @@ class Batch extends Model
     public function samplingLog()
     {
         return $this->hasMany(SamplingLog::class);
+    }
+
+    public function treatmentLog()
+    {
+        return $this->hasMany(TreatmentLog::class);
     }
 
     public function harvestLog()

@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->date('log_date');
             $table->unsignedInteger('quantity_pcs')->comment('Jumlah mati (Ekor)');
-            $table->decimal('total_weight_kg', 8, 2)->nullable()->comment('Total bobot mati (Kg)');
+            $table->decimal('total_weight_g', 10, 2)->nullable()->comment('Total bobot mati (Kg)');
             $table->string('indication')->nullable()->comment('Dugaan penyakit / penyebab, misal: kanibalisme, jamur');
             $table->text('action_taken')->nullable()->comment('Tindakan penanganan yang dilakukan');
 

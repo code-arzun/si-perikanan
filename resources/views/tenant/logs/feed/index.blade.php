@@ -185,12 +185,15 @@
             <form action="{{ route('tenant.logs.feed.store') }}" method="POST">
                 @csrf
 
-                <!-- Container Dynamic Batch Select / Locked Text -->
+                <!-- 1 ELEMEN UTAMA BATCH ID (Hidden) -->
+                <input type="hidden" name="batch_id" id="modal_batch_id_hidden">
+
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.875rem;">Siklus / Kolam Aktif *</label>
                     
+                    <!-- Terbuka saat Klik Tombol Utama -->
                     <div id="wrapper_select_batch">
-                        <select name="batch_id" id="modal_batch_id_select" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <select id="modal_batch_id_select" onchange="document.getElementById('modal_batch_id_hidden').value = this.value" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                             <option value="">-- Pilih Kolam Aktif --</option>
                             @foreach($activeBatches as $batch)
                                 <option value="{{ $batch->id }}">
@@ -200,8 +203,8 @@
                         </select>
                     </div>
 
+                    <!-- Terbuka saat Klik Tombol "+ Catat" Spesifik Batch -->
                     <div id="wrapper_locked_batch" style="display: none;">
-                        <input type="hidden" name="batch_id" id="modal_batch_id_hidden">
                         <input type="text" id="modal_pond_display" readonly style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f1f5f9; color: #475569; font-weight: bold; cursor: not-allowed;">
                     </div>
                 </div>
@@ -284,24 +287,23 @@
         function openFeedModal(batchId = null, pondName = '', batchCode = '') {
             const selectWrapper = document.getElementById('wrapper_select_batch');
             const lockedWrapper = document.getElementById('wrapper_locked_batch');
+            const hiddenBatchInput = document.getElementById('modal_batch_id_hidden');
+            const selectBatchInput = document.getElementById('modal_batch_id_select');
 
             if (batchId) {
-                // Jika diklik dari tombol "+ Catat" spesifik batch (Locked/Readonly)
+                // Klik dari Tombol Target Card Kolam
                 selectWrapper.style.display = 'none';
-                document.getElementById('modal_batch_id_select').removeAttribute('name');
-                
                 lockedWrapper.style.display = 'block';
-                document.getElementById('modal_batch_id_hidden').value = batchId;
-                document.getElementById('modal_batch_id_hidden').setAttribute('name', 'batch_id');
+                
+                hiddenBatchInput.value = batchId;
                 document.getElementById('modal_pond_display').value = pondName + ' (' + batchCode + ')';
             } else {
-                // Jika diklik dari tombol umum (Editable Select)
+                // Klik dari Tombol Utama
                 lockedWrapper.style.display = 'none';
-                document.getElementById('modal_batch_id_hidden').removeAttribute('name');
-                
                 selectWrapper.style.display = 'block';
-                document.getElementById('modal_batch_id_select').setAttribute('name', 'batch_id');
-                document.getElementById('modal_batch_id_select').value = '';
+                
+                selectBatchInput.value = '';
+                hiddenBatchInput.value = '';
             }
 
             document.getElementById('feedModal').classList.add('active');

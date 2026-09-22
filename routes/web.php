@@ -119,24 +119,32 @@ Route::middleware(['auth', 'tenant'])->prefix('tenant')->name('tenant.')->group(
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
+                Route::get('/bulk', [MortalityLogController::class, 'bulkCreate'])->name('bulk-create');
+                Route::post('/bulk', [MortalityLogController::class, 'bulkStore'])->name('bulk-store');
             });
 
             Route::controller(SamplingLogController::class)->prefix('sampling')->name('sampling.')->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
+                Route::get('/bulk', [SamplingLogController::class, 'bulkCreate'])->name('bulk-create');
+                Route::post('/bulk', [SamplingLogController::class, 'bulkStore'])->name('bulk-store');
             });
 
             Route::controller(TreatmentLogController::class)->prefix('treatment')->name('treatment.')->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
+                Route::get('/bulk', [TreatmentLogController::class, 'bulkCreate'])->name('bulk-create');
+                Route::post('/bulk', [TreatmentLogController::class, 'bulkStore'])->name('bulk-store');
             });
 
             Route::controller(WaterQualityLogController::class)->prefix('water')->name('water.')->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
+                Route::get('/bulk', [WaterQualityLogController::class, 'bulkCreate'])->name('bulk-create');
+                Route::post('/bulk', [WaterQualityLogController::class, 'bulkStore'])->name('bulk-store');
             });
         });
     });

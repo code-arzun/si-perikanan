@@ -17,6 +17,13 @@ class WaterQualityLog extends Model
         'salinity_ppt', 'transparency_cm', 'water_color', 'notes',
     ];
 
-    public function batch() { return $this->belongsTo(Batch::class); }
-    public function user() { return $this->belongsTo(User::class, 'logged_by'); }
+    public function batch()
+    { 
+        return $this->belongsTo(Batch::class); 
+    }
+
+    public function user()
+    { 
+        return $this->belongsTo(User::class, 'logged_by'); 
+    }
 }

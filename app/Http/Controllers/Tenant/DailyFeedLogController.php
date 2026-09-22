@@ -49,15 +49,10 @@ class DailyFeedLogController extends Controller
     }
 
     public function store(DailyFeedLogRequest $request)
-    // {
-    //     DailyFeedLog::create(array_merge($request->validated(), [
-    //         'logged_by' => Auth::id(),
-    //     ]));
-
-    //     return redirect('/tenant/logs/feed')->with('success', 'Pemberian pakan harian berhasil dicatat!');
-    // }
+    
     {
         $validated = $request->validated();
+        $validated['tenant_id'] = auth()->user()->tenant_id;
         $validated['logged_by'] = auth()->id();
 
         DailyFeedLog::create($validated);

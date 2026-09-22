@@ -98,6 +98,7 @@
                                 <input type="checkbox" id="check_all" checked onclick="toggleCheckAll(this)">
                             </th>
                             <th>Kolam / Kode Batch</th>
+                            <th style="width: 110px;">Frekuensi</th>
                             <th style="width: 160px;">Pakan / Sesi (Gram)</th>
                             <th style="width: 140px;">Total Harian (Kg) *</th>
                             <th style="width: 150px;">Respon Pakan</th>
@@ -105,46 +106,57 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($activeBatches as $index =>$batch)
+                        @forelse($activeBatches as $index => $batch)
                             <tr id="row_{{ $batch->id }}">
-                                <!-- Checkbox Aktifkan Input Kolam Ini -->
+                                <!-- Checkbox -->
                                 <td style="text-align: center;">
                                     <input type="checkbox" 
-                                           name="logs[{{ $index }}][enabled]" 
-                                           value="1" 
-                                           checked 
-                                           class="row-checkbox" 
-                                           onchange="toggleRowState({{ $batch->id }}, this.checked)">
+                                        name="logs[{{ $index }}][enabled]" 
+                                        value="1" 
+                                        checked 
+                                        class="row-checkbox" 
+                                        onchange="toggleRowState({{ $batch->id }}, this.checked)">
                                     
                                     <input type="hidden" name="logs[{{ $index }}][batch_id]" value="{{ $batch->id }}">
                                 </td>
 
-                                <!-- Informasi Batch -->
+                                <!-- Info Batch -->
                                 <td>
                                     <strong>{{ $batch->pond->name ?? 'Kolam Tanpa Nama' }}</strong>
                                     <div style="font-size: 0.75rem; color: #2563eb;">Batch: {{ $batch->batch_code }}</div>
                                 </td>
 
+                                <!-- Frekuensi Per Baris (Manual Input) -->
+                                <td>
+                                    <input type="number" 
+                                        min="1" 
+                                        id="freq_{{ $batch->id }}" 
+                                        name="logs[{{ $index }}][feeding_frequency]" 
+                                        value="1" 
+                                        class="input-control input-row-{{ $batch->id }}" 
+                                        oninput="calculateRowRealtime({{ $batch->id }}, 'freq')">
+                                </td>
+
                                 <!-- Pakan / Sesi (Gram) -->
                                 <td>
                                     <input type="text" 
-                                           inputmode="decimal" 
-                                           id="per_feed_{{ $batch->id }}" 
-                                           name="logs[{{ $index }}][amount_per_feed_g]" 
-                                           placeholder="0" 
-                                           class="input-control input-row-{{ $batch->id }}" 
-                                           oninput="calculateRowRealtime({{ $batch->id }}, 'per_feed')">
+                                        inputmode="decimal" 
+                                        id="per_feed_{{ $batch->id }}" 
+                                        name="logs[{{ $index }}][amount_per_feed_g]" 
+                                        placeholder="0" 
+                                        class="input-control input-row-{{ $batch->id }}" 
+                                        oninput="calculateRowRealtime({{ $batch->id }}, 'per_feed')">
                                 </td>
 
-                                <!-- Total Kg (Auto-calculate) -->
+                                <!-- Total Kg -->
                                 <td>
                                     <input type="text" 
-                                           inputmode="decimal" 
-                                           id="total_kg_{{ $batch->id }}" 
-                                           name="logs[{{ $index }}][amount_kg]" 
-                                           placeholder="0" 
-                                           class="input-control input-row-{{ $batch->id }}" 
-                                           oninput="calculateRowRealtime({{ $batch->id }}, 'total_kg')">
+                                        inputmode="decimal" 
+                                        id="total_kg_{{ $batch->id }}" 
+                                        name="logs[{{ $index }}][amount_kg]" 
+                                        placeholder="0" 
+                                        class="input-control input-row-{{ $batch->id }}" 
+                                        oninput="calculateRowRealtime({{ $batch->id }}, 'total_kg')">
                                 </td>
 
                                 <!-- Respon Pakan -->
@@ -160,15 +172,15 @@
                                 <!-- Catatan -->
                                 <td>
                                     <input type="text" 
-                                           name="logs[{{ $index }}][notes]" 
-                                           placeholder="Keterangan..." 
-                                           class="input-control input-row-{{ $batch->id }}">
+                                        name="logs[{{ $index }}][notes]" 
+                                        placeholder="Keterangan..." 
+                                        class="input-control input-row-{{ $batch->id }}">
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 2rem; color: #64748b;">
-                                    Tidak ada batch/siklus aktif saat ini untuk dicatat pakan massal.
+                                <td colspan="7" style="text-align: center; padding: 2rem; color: #64748b;">
+                                    Tidak ada batch/siklus aktif saat ini.
                                 </td>
                             </tr>
                         @endforelse
