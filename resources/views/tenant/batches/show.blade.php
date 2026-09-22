@@ -1,184 +1,287 @@
 <x-layouts.app>
-    <x-slot:title>Detail Siklus {{ $batch->batch_code }}</x-slot:title>
+    <x-slot:title>Detail Batch {{ $batch->batch_code }}</x-slot:title>
 
-    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <style>
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; }
+        .btn-back { background: #64748b; color: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 0.875rem; }
+
+        /* Badge Status */
+        .badge-status { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge-aktif { background: #d1fae5; color: #065f46; }
+        .badge-panen { background: #dbeafe; color: #1e40af; }
+        .badge-gagal { background: #fee2e2; color: #991b1b; }
+
+        /* Summary Header Box */
+        .batch-summary-box { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; }
+
+        /* Metric KPI Cards Grid */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .kpi-card { background: white; border-radius: 10px; border: 1px solid #e2e8f0; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .kpi-title { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+        .kpi-value { font-size: 1.5rem; font-weight: 800; margin-top: 0.25rem; }
+
+        /* Tab Navigation */
+        .tab-container { background: white; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .tab-menu { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+        .tab-btn { padding: 12px 20px; border: none; background: none; font-weight: 600; font-size: 0.875rem; color: #64748b; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
+        .tab-content { padding: 1.25rem; display: none; }
+        .tab-content.active { display: block; }
+
+        /* Table Style Inside Tab */
+        .table { width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left; }
+        .table th { background: #f1f5f9; padding: 10px 12px; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+        .table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    </style>
+
+    <div class="page-header">
         <div>
-            <a href="/tenant/batches" style="color: #6b7280; text-decoration: none; font-size: 0.9rem;">&larr; Kembali ke Daftar Siklus</a>
-            <h2 style="margin-top: 4px;">Siklus: {{ $batch->batch_code }}</h2>
-            <span style="color: #4b5563;">Kolam: <strong>{{ $batch->pond->name ?? '-' }}</strong> | Spesies: <strong>{{ $batch->fishSpecies->name ?? '-' }}</strong></span>
+            <h1 class="page-title">
+                🏊‍♂️ {{ $batch->pond->name ?? 'Kolam' }} 
+                <span style="font-weight: normal; color: #64748b;">({{ $batch->batch_code }})</span>
+            </h1>
+            <p style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem;">
+                Komoditas: <strong>{{ $batch->fishSpecies->name ?? 'Ikan/Udang' }}</strong> | Tanggal Tebar: {{ \Carbon\Carbon::parse($batch->start_date)->format('d M Y') }}
+            </p>
         </div>
-        <div>
-            <span style="padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; background: {{ $batch->status === 'aktif' ? '#dcfce7' : '#f3f4f6' }}; color: {{ $batch->status === 'aktif' ? '#15803d' : '#4b5563' }}; text-transform: uppercase;">
-                Status: {{ $batch->status }}
-            </span>
+        <a href="{{ route('tenant.batches.index') ?? '#' }}" class="btn-back">← Kembali ke Daftar Batch</a>
+    </div>
+
+    <!-- BATCH SUMMARY BOX -->
+    <div class="batch-summary-box">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span class="badge-status badge-{{ $batch->status }}">{{ $batch->status }}</span>
+                <span style="font-size: 0.875rem; color: #64748b; margin-left: 8px;">
+                    Target Harvest: {{ $batch->estimated_harvest_date ? \Carbon\Carbon::parse($batch->estimated_harvest_date)->format('d M Y') : '-' }}
+                </span>
+            </div>
+            @if($batch->notes)
+                <small style="color: #64748b; font-style: italic;">Catatan: {{ $batch->notes }}</small>
+            @endif
+        </div>
+
+        <div class="info-grid">
+            <div>
+                <small style="color: #64748b;">Tebar Awal</small>
+                <div style="font-weight: bold; color: #0f172a;">{{ number_format($batch->initial_seed_count, 0, ',', '.') }} Ekor</div>
+            </div>
+            <div>
+                <small style="color: #64748b;">MBW Awal</small>
+                <div style="font-weight: bold; color: #0f172a;">{{ number_format($batch->initial_avg_weight_g, 2, ',', '.') }} Gram</div>
+            </div>
+            <div>
+                <small style="color: #64748b;">Biomassa Awal</small>
+                <div style="font-weight: bold; color: #0f172a;">{{ number_format($batch->initial_total_weight_kg, 2, ',', '.') }} Kg</div>
+            </div>
+            <div>
+                <small style="color: #64748b;">Target FCR / SR</small>
+                <div style="font-weight: bold; color: #0f172a;">{{ $batch->target_fcr }} / {{ $batch->target_survival_rate }}%</div>
+            </div>
         </div>
     </div>
 
-    {{-- Grid KPI Ringkasan Budidaya (5 Card) --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        
-        {{-- Card 1: FCR --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #2563eb;">
-            <div style="font-size: 0.8rem; color: #6b7280; font-weight: bold;">FCR (Feed Ratio)</div>
-            <div style="font-size: 1.6rem; font-weight: bold; color: #1e3a8a; margin: 4px 0;">{{ $currentFcr > 0 ? $currentFcr : '-' }}</div>
-            <small style="color: #6b7280;">Target: {{ $batch->target_fcr ?? '1.2' }}</small>
+    <!-- METRIC KPI CARDS -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="border-top: 4px solid #2563eb;">
+            <div class="kpi-title">Umur Budidaya (DOC)</div>
+            <div class="kpi-value" style="color: #2563eb;">{{ $doc }} <span style="font-size: 0.875rem;">Hari</span></div>
         </div>
 
-        {{-- Card 2: Survival Rate % --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #16a34a;">
-            <div style="font-size: 0.8rem; color: #6b7280; font-weight: bold;">Survival Rate (SR)</div>
-            <div style="font-size: 1.6rem; font-weight: bold; color: #15803d; margin: 4px 0;">{{ $survivalRate }}%</div>
-            <small style="color: #6b7280;">Sisa Kolam: {{ number_format($currentPopulation) }} ekor</small>
+        <div class="kpi-card" style="border-top: 4px solid #10b981;">
+            <div class="kpi-title">Survival Rate (SR)</div>
+            <div class="kpi-value" style="color: #059669;">{{ $survivalRate }}%</div>
+            <small style="color: #64748b;">Estimasi {{ number_format($currentPopulationPcs, 0, ',', '.') }} ekor hidup</small>
         </div>
 
-        {{-- Card 3: Est. Biomasa Aktif Kolam --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #8b5cf6;">
-            <div style="font-size: 0.8rem; color: #6b7280; font-weight: bold;">Biomasa Kolam (Aktif)</div>
-            <div style="font-size: 1.6rem; font-weight: bold; color: #6d28d9; margin: 4px 0;">{{ number_format($currentBiomassKg, 1, ',', '.') }} <span style="font-size: 0.9rem;">Kg</span></div>
-            <small style="color: #6b7280;">MBW: {{ number_format($latestMbwG, 1, ',', '.') }}g</small>
+        <div class="kpi-card" style="border-top: 4px solid #0284c7;">
+            <div class="kpi-title">MBW Terkini</div>
+            <div class="kpi-value" style="color: #0284c7;">{{ number_format($latestMbwG, 2, ',', '.') }} <span style="font-size: 0.875rem;">Gram</span></div>
         </div>
 
-        {{-- Card 4: Total Pakan --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #f59e0b;">
-            <div style="font-size: 0.8rem; color: #6b7280; font-weight: bold;">Total Pakan Terpakai</div>
-            <div style="font-size: 1.6rem; font-weight: bold; color: #b45309; margin: 4px 0;">{{ number_format($totalFeedKg, 1, ',', '.') }} <span style="font-size: 0.9rem;">Kg</span></div>
-            <small style="color: #6b7280;">Log Pakan Harian</small>
+        <div class="kpi-card" style="border-top: 4px solid #8b5cf6;">
+            <div class="kpi-title">Estimasi Biomassa</div>
+            <div class="kpi-value" style="color: #7c3aed;">{{ number_format($currentBiomassKg, 2, ',', '.') }} <span style="font-size: 0.875rem;">Kg</span></div>
         </div>
 
-        {{-- Card 5: Hasil Panen & Omzet --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #059669;">
-            <div style="font-size: 0.8rem; color: #6b7280; font-weight: bold;">Total Hasil Panen</div>
-            <div style="font-size: 1.6rem; font-weight: bold; color: #047857; margin: 4px 0;">{{ number_format($totalHarvestKg, 1, ',', '.') }} <span style="font-size: 0.9rem;">Kg</span></div>
-            <small style="color: #059669; font-weight: bold;">Omzet: Rp {{ number_format($totalRevenue, 0, ',', '.') }}</small>
+        <div class="kpi-card" style="border-top: 4px solid #f59e0b;">
+            <div class="kpi-title">Total Pakan Terpakai</div>
+            <div class="kpi-value" style="color: #d97706;">{{ number_format($totalFeedKg, 2, ',', '.') }} <span style="font-size: 0.875rem;">Kg</span></div>
         </div>
 
+        <div class="kpi-card" style="border-top: 4px solid #ec4899;">
+            <div class="kpi-title">FCR Sementara</div>
+            <div class="kpi-value" style="color: #db2777;">{{ $fcr }}</div>
+            <small style="color: #64748b;">Target: {{ $batch->target_fcr }}</small>
+        </div>
     </div>
 
-    {{-- Tabel Riwayat Panen --}}
-    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="margin: 0; color: #047857;">Riwayat Panen (Parsial & Total)</h3>
-            <a href="/tenant/harvests/create" style="background: #10b981; color: white; padding: 4px 10px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: bold;">+ Catat Panen</a>
+    <!-- TABBED LOG HISTORY -->
+    <div class="tab-container">
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="switchTab('feed')">🥣 Log Pakan ({{ $batch->dailyFeedLog->count() }})</button>
+            <button class="tab-btn" onclick="switchTab('water')">💧 Kualitas Air ({{ $batch->waterQualityLog->count() }})</button>
+            <button class="tab-btn" onclick="switchTab('sampling')">📏 Sampling ({{ $batch->samplingLog->count() }})</button>
+            <button class="tab-btn" onclick="switchTab('mortality')">💀 Kematian ({{ $batch->mortalityLog->count() }})</button>
+            <button class="tab-btn" onclick="switchTab('treatment')">🌿 Treatment ({{ $batch->treatmentLog->count() }})</button>
         </div>
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f9fafb; text-align: left; border-bottom: 1px solid #e5e7eb;">
-                    <th style="padding: 10px;">Tanggal</th>
-                    <th style="padding: 10px;">Tipe</th>
-                    <th style="padding: 10px;">Hasil Panen (Kg)</th>
-                    <th style="padding: 10px;">Jumlah Ekor</th>
-                    <th style="padding: 10px;">Harga / Kg</th>
-                    <th style="padding: 10px;">Total Pendapatan</th>
-                    <th style="padding: 10px;">Pembeli</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($batch->harvestLog as $log)
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 10px;">{{ \Carbon\Carbon::parse($log->harvest_date)->format('d/m/Y') }}</td>
-                        <td style="padding: 10px;">
-                            <span style="padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; background: {{ $log->harvest_type === 'total' ? '#fee2e2' : '#e0e7ff' }}; color: {{ $log->harvest_type === 'total' ? '#991b1b' : '#3730a3' }}; text-transform: uppercase;">
-                                {{ $log->harvest_type === 'total' ? 'Total' : 'Parsial' }}
-                            </span>
-                        </td>
-                        <td style="padding: 10px; font-weight: bold; color: #047857;">{{ number_format($log->weight_kg, 2, ',', '.') }} Kg</td>
-                        <td style="padding: 10px;">{{ $log->total_pcs ? number_format($log->total_pcs) . ' ekor' : '-' }}</td>
-                        <td style="padding: 10px;">{{ $log->price_per_kg ? 'Rp ' . number_format($log->price_per_kg, 0, ',', '.') : '-' }}</td>
-                        <td style="padding: 10px; font-weight: bold; color: #2563eb;">{{ $log->total_revenue ? 'Rp ' . number_format($log->total_revenue, 0, ',', '.') : '-' }}</td>
-                        <td style="padding: 10px; color: #6b7280;">{{ $log->buyer_name ?? '-' }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" style="padding: 15px; text-align: center; color: #6b7280;">Belum ada catatan panen untuk siklus ini.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
 
-    {{-- Grid 3 Kolom: Log Pakan, Kematian, & Sampling --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-        
-        {{-- Log Pakan --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <h3 style="margin-bottom: 0.75rem; color: #b45309; font-size: 1.1rem;">Log Pakan Terbaru</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <!-- 1. TAB LOG PAKAN -->
+        <div id="tab-feed" class="tab-content active">
+            <table class="table">
                 <thead>
-                    <tr style="background: #f9fafb; text-align: left; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 8px;">Tgl & Jam</th>
-                        <th style="padding: 8px;">Jumlah</th>
-                        <th style="padding: 8px;">Respon</th>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Jumlah Pakan (Kg)</th>
+                        <th>Frekuensi</th>
+                        <th>Respon Makan</th>
+                        <th>Petugas</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($batch->dailyFeedLog as $log)
-                        <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 8px;">{{ \Carbon\Carbon::parse($log->feed_date)->format('d/m') }} ({{ $log->feed_time }})</td>
-                            <td style="padding: 8px; font-weight: bold;">{{ number_format($log->amount_kg, 2, ',', '.') }} Kg</td>
-                            <td style="padding: 8px; text-transform: capitalize;">{{ str_replace('_', ' ', $log->appetite_response) }}</td>
+                        <tr>
+                            <td><strong>{{ \Carbon\Carbon::parse($log->feed_date)->format('d M Y') }}</strong></td>
+                            <td style="font-weight: bold; color: #d97706;">{{ number_format($log->amount_kg, 2, ',', '.') }} Kg</td>
+                            <td>{{ $log->feeding_frequency }}x / hari</td>
+                            <td>{{ $log->appetite_response ?? '-' }}</td>
+                            <td>{{ $log->user->name ?? 'Sistem' }}</td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="3" style="padding: 10px; text-align: center; color: #6b7280;">Belum ada log pakan.</td>
-                        </tr>
+                        <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada catatan pakan.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        {{-- Log Kematian --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <h3 style="margin-bottom: 0.75rem; color: #dc2626; font-size: 1.1rem;">Log Kematian Terbaru</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <!-- 2. TAB KUALITAS AIR -->
+        <div id="tab-water" class="tab-content">
+            <table class="table">
                 <thead>
-                    <tr style="background: #f9fafb; text-align: left; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 8px;">Tanggal</th>
-                        <th style="padding: 8px;">Jumlah</th>
-                        <th style="padding: 8px;">Indikasi</th>
+                    <tr>
+                        <th>Tanggal / Sesi</th>
+                        <th>pH</th>
+                        <th>DO (mg/L)</th>
+                        <th>Suhu (°C)</th>
+                        <th>Kecerahan (cm)</th>
+                        <th>Warna Air</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($batch->mortalityLog as $log)
-                        <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 8px;">{{ \Carbon\Carbon::parse($log->log_date)->format('d/m/Y') }}</td>
-                            <td style="padding: 8px; color: #dc2626; font-weight: bold;">{{ number_format($log->quantity_pcs) }} ekor</td>
-                            <td style="padding: 8px; color: #6b7280;">{{ $log->indication ?? '-' }}</td>
+                    @forelse($batch->waterQualityLog as $log)
+                        <tr>
+                            <td><strong>{{ \Carbon\Carbon::parse($log->check_date)->format('d M Y') }}</strong> ({{ ucfirst($log->check_time_session) }})</td>
+                            <td>{{ $log->ph ?? '-' }}</td>
+                            <td>{{ $log->do_mg_l ?? '-' }}</td>
+                            <td>{{ $log->temperature_c ? $log->temperature_c . ' °C' : '-' }}</td>
+                            <td>{{ $log->transparency_cm ? $log->transparency_cm . ' cm' : '-' }}</td>
+                            <td>{{ $log->water_color ?? '-' }}</td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="3" style="padding: 10px; text-align: center; color: #6b7280;">Tidak ada kematian.</td>
-                        </tr>
+                        <tr><td colspan="6" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada catatan kualitas air.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        {{-- Log Sampling --}}
-        <div style="background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <h3 style="margin-bottom: 0.75rem; color: #2563eb; font-size: 1.1rem;">Log Sampling Terbaru</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <!-- 3. TAB SAMPLING -->
+        <div id="tab-sampling" class="tab-content">
+            <table class="table">
                 <thead>
-                    <tr style="background: #f9fafb; text-align: left; border-bottom: 1px solid #e5e7eb;">
-                        <th style="padding: 8px;">Tanggal</th>
-                        <th style="padding: 8px;">MBW</th>
-                        <th style="padding: 8px;">Est. Biomasa</th>
+                    <tr>
+                        <th>Tanggal Sampling</th>
+                        <th>Jumlah Sampel</th>
+                        <th>MBW / Rata-rata (Gram)</th>
+                        <th>Panjang Rata-rata</th>
+                        <th>Estimasi Biomassa</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($batch->samplingLog as $log)
-                        <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 8px;">{{ \Carbon\Carbon::parse($log->sampling_date)->format('d/m/Y') }}</td>
-                            <td style="padding: 8px; font-weight: bold; color: #2563eb;">{{ number_format($log->avg_weight_g, 2, ',', '.') }} g</td>
-                            <td style="padding: 8px;">{{ number_format($log->estimated_biomass_kg, 1, ',', '.') }} Kg</td>
+                        <tr>
+                            <td><strong>{{ \Carbon\Carbon::parse($log->sampling_date)->format('d M Y') }}</strong></td>
+                            <td>{{ number_format($log->sample_count_pcs, 0, ',', '.') }} ekor</td>
+                            <td style="font-weight: bold; color: #0284c7;">{{ number_format($log->avg_weight_g, 2, ',', '.') }} g</td>
+                            <td>{{ $log->avg_length_cm ? $log->avg_length_cm . ' cm' : '-' }}</td>
+                            <td>{{ $log->estimated_biomass_kg ? number_format($log->estimated_biomass_kg, 2, ',', '.') . ' Kg' : '-' }}</td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="3" style="padding: 10px; text-align: center; color: #6b7280;">Belum ada sampling.</td>
-                        </tr>
+                        <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada catatan sampling.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
+        <!-- 4. TAB KEMATIAN -->
+        <div id="tab-mortality" class="tab-content">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Jumlah Mati</th>
+                        <th>Total Bobot (Gram)</th>
+                        <th>Indikasi / Penyebab</th>
+                        <th>Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($batch->mortalityLog as $log)
+                        <tr>
+                            <td><strong>{{ \Carbon\Carbon::parse($log->log_date)->format('d M Y') }}</strong></td>
+                            <td style="font-weight: bold; color: #dc2626;">{{ number_format($log->quantity_pcs, 0, ',', '.') }} ekor</td>
+                            <td>{{ $log->total_weight_g ? number_format($log->total_weight_g, 0, ',', '.') . ' g' : '-' }}</td>
+                            <td>{{ $log->indication ?? '-' }}</td>
+                            <td>{{ $log->action_taken ?? '-' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada catatan kematian.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 5. TAB TREATMENT -->
+        <div id="tab-treatment" class="tab-content">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Bahan / Produk</th>
+                        <th>Dosis</th>
+                        <th>Tujuan</th>
+                        <th>Petugas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($batch->treatmentLog as $log)
+                        <tr>
+                            <td><strong>{{ \Carbon\Carbon::parse($log->treatment_date)->format('d M Y') }}</strong></td>
+                            <td><strong>{{ $log->product_name }}</strong></td>
+                            <td style="font-weight: bold; color: #059669;">{{ number_format($log->dosage_amount, 2, ',', '.') }} {{ $log->dosage_unit }}</td>
+                            <td>{{ $log->purpose ?? '-' }}</td>
+                            <td>{{ $log->user->name ?? 'Sistem' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 1.5rem;">Belum ada catatan treatment.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- JAVASCRIPT TAB SWITCHER -->
+    <script>
+        function switchTab(tabName) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Deactivate all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Activate targeted tab and button
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
 </x-layouts.app>

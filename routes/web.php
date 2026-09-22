@@ -14,6 +14,7 @@ use App\Http\Controllers\Tenant\CashTransactionController;
 use App\Http\Controllers\Tenant\ContactController;
 use App\Http\Controllers\Tenant\DailyFeedLogController;
 use App\Http\Controllers\Tenant\DashboardController;
+use App\Http\Controllers\Tenant\FeedStockController;
 use App\Http\Controllers\Tenant\HarvestController;
 use App\Http\Controllers\Tenant\MortalityLogController;
 use App\Http\Controllers\Tenant\PondController;
@@ -104,6 +105,7 @@ Route::middleware(['auth', 'tenant'])->prefix('tenant')->name('tenant.')->group(
         Route::resource('ponds', PondController::class)->only(['index', 'create', 'store', 'destroy']);
         Route::resource('batches', BatchController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('harvests', HarvestController::class)->only(['index', 'create', 'store']);
+        Route::get('/inventory/feed', [FeedStockController::class, 'index'])->name('tenant.inventory.feed.index');
 
         // Log Harian
         Route::prefix('logs')->name('logs.')->group(function () {

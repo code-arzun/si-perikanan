@@ -7,6 +7,7 @@ use App\Http\Requests\Tenant\BatchRequest;
 use App\Models\Batch;
 use App\Models\FishSpecies;
 use App\Models\Pond;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class BatchController extends Controller
@@ -49,58 +50,114 @@ class BatchController extends Controller
         return redirect('/tenant/batches')->with('success', 'Siklus budidaya berhasil dimulai!');
     }
 
-    public function show(Batch $batch)
-{
-    // Load relasi log
-    $batch->load([
-        'pond',
-        'fishSpecies',
-        'dailyFeedLog' => fn($q) => $q->latest('feed_date')->take(10),
-        'mortalityLog'  => fn($q) => $q->latest('log_date')->take(10),
-        'samplingLog'  => fn($q) => $q->latest('sampling_date')->take(10),
-        'harvestLog'    => fn($q) => $q->latest('harvest_date'),
-    ]);
+    // public function show(Batch $batch)
+    // {
+    //     // Load relasi log
+    //     $batch->load([
+    //         'pond',
+    //         'fishSpecies',
+    //         'dailyFeedLog' => fn($q) => $q->latest('feed_date')->take(10),
+    //         'mortalityLog'  => fn($q) => $q->latest('log_date')->take(10),
+    //         'samplingLog'  => fn($q) => $q->latest('sampling_date')->take(10),
+    //         'harvestLog'    => fn($q) => $q->latest('harvest_date'),
+    //     ]);
 
-    // 1. Akumulasi Log
-    $totalFeedKg = $batch->dailyFeedLog()->sum('amount_kg') ?? 0;
-    $totalMortalityPcs = $batch->mortalityLog()->sum('quantity_pcs') ?? 0;
-    $totalHarvestPcs = $batch->harvestLog()->sum('total_pcs') ?? 0;
-    $totalHarvestKg = $batch->harvestLog()->sum('weight_kg') ?? 0;
-    $totalRevenue = $batch->harvestLog()->sum('total_revenue') ?? 0;
+    //     // 1. Akumulasi Log
+    //     $totalFeedKg = $batch->dailyFeedLog()->sum('amount_kg') ?? 0;
+    //     $totalMortalityPcs = $batch->mortalityLog()->sum('quantity_pcs') ?? 0;
+    //     $totalHarvestPcs = $batch->harvestLog()->sum('total_pcs') ?? 0;
+    //     $totalHarvestKg = $batch->harvestLog()->sum('weight_kg') ?? 0;
+    //     $totalRevenue = $batch->harvestLog()->sum('total_revenue') ?? 0;
 
-    // 2. Sisa Populasi Aktif di Kolam (Tebar - Mati - Ekor Terpanen Parsial)
-    $currentPopulation = max(0, $batch->initial_seed_count - $totalMortalityPcs - $totalHarvestPcs);
+    //     // 2. Sisa Populasi Aktif di Kolam (Tebar - Mati - Ekor Terpanen Parsial)
+    //     $currentPopulation = max(0, $batch->initial_seed_count - $totalMortalityPcs - $totalHarvestPcs);
 
-    // 3. Survival Rate (SR %) = ((Sisa Populasi + Total Ekor Panen) / Tebar Awal) * 100
-    $survivalRate = $batch->initial_seed_count > 0 
-        ? round((($currentPopulation + $totalHarvestPcs) / $batch->initial_seed_count) * 100, 1) 
-        : 0;
+    //     // 3. Survival Rate (SR %) = ((Sisa Populasi + Total Ekor Panen) / Tebar Awal) * 100
+    //     $survivalRate = $batch->initial_seed_count > 0 
+    //         ? round((($currentPopulation + $totalHarvestPcs) / $batch->initial_seed_count) * 100, 1) 
+    //         : 0;
 
-    // 4. Data Sampling & Estimasi Biomasa AKTIF Saat Ini (Hanya Ikan yang Masih di Kolam)
-    $latestSampling = $batch->samplingLog()->latest('sampling_date')->first();
-    $latestMbwG = $latestSampling ? $latestSampling->avg_weight_g : $batch->initial_avg_weight_g;
-    
-    // Biomasa aktif di kolam saat ini (Kg)
-    $currentBiomassKg = round(($currentPopulation * $latestMbwG) / 1000, 2);
+    //     // 4. Data Sampling & Estimasi Biomasa AKTIF Saat Ini (Hanya Ikan yang Masih di Kolam)
+    //     $latestSampling = $batch->samplingLog()->latest('sampling_date')->first();
+    //     $latestMbwG = $latestSampling ? $latestSampling->avg_weight_g : $batch->initial_avg_weight_g;
+        
+    //     // Biomasa aktif di kolam saat ini (Kg)
+    //     $currentBiomassKg = round(($currentPopulation * $latestMbwG) / 1000, 2);
 
-    // 5. Kalkulasi FCR (Feed Ratio)
-    // Total Biomasa Dihasilkan = Biomasa Ikan di Kolam + Total Kg Ikan yang Sudah Dipanen
-    $totalBiomassProducedKg = $currentBiomassKg + $totalHarvestKg;
-    $biomassGainKg = $totalBiomassProducedKg - $batch->initial_total_weight_kg;
-    $currentFcr = ($biomassGainKg > 0) ? round($totalFeedKg / $biomassGainKg, 2) : 0;
+    //     // 5. Kalkulasi FCR (Feed Ratio)
+    //     // Total Biomasa Dihasilkan = Biomasa Ikan di Kolam + Total Kg Ikan yang Sudah Dipanen
+    //     $totalBiomassProducedKg = $currentBiomassKg + $totalHarvestKg;
+    //     $biomassGainKg = $totalBiomassProducedKg - $batch->initial_total_weight_kg;
+    //     $currentFcr = ($biomassGainKg > 0) ? round($totalFeedKg / $biomassGainKg, 2) : 0;
 
-    return view('tenant.batches.show', compact(
-        'batch',
-        'totalFeedKg',
-        'totalMortalityPcs',
-        'totalHarvestPcs',
-        'totalHarvestKg',
-        'totalRevenue',
-        'currentPopulation',
-        'survivalRate',
-        'latestMbwG',
-        'currentBiomassKg',
-        'currentFcr'
-    ));
-}
+    //     return view('tenant.batches.show', compact(
+    //         'batch',
+    //         'totalFeedKg',
+    //         'totalMortalityPcs',
+    //         'totalHarvestPcs',
+    //         'totalHarvestKg',
+    //         'totalRevenue',
+    //         'currentPopulation',
+    //         'survivalRate',
+    //         'latestMbwG',
+    //         'currentBiomassKg',
+    //         'currentFcr'
+    //     ));
+    // }
+
+    public function show($id)
+    {
+        $batch = Batch::with([
+            'pond',
+            'fishSpecies',
+            'dailyFeedLog' => fn($q) => $q->orderBy('feed_date', 'desc')->orderBy('created_at', 'desc'),
+            'waterQualityLog' => fn($q) => $q->orderBy('check_date', 'desc')->orderBy('created_at', 'desc'),
+            'samplingLog' => fn($q) => $q->orderBy('sampling_date', 'desc')->orderBy('created_at', 'desc'),
+            'mortalityLog' => fn($q) => $q->orderBy('log_date', 'desc')->orderBy('created_at', 'desc'),
+            'treatmentLog' => fn($q) => $q->orderBy('treatment_date', 'desc')->orderBy('created_at', 'desc'),
+        ])->findOrFail($id);
+
+        // 1. Hitung DOC (Day of Crop)
+        $startDate = Carbon::parse($batch->start_date);
+        $endDate = $batch->actual_harvest_date ? Carbon::parse($batch->actual_harvest_date) : Carbon::now();
+        $doc = max(0, $startDate->diffInDays($endDate));
+
+        // 2. Akumulasi Kematian & Estimasi Populasi Hidup
+        $totalMortalityPcs = $batch->mortalityLog->sum('quantity_pcs');
+        $currentPopulationPcs = max(0, $batch->initial_seed_count - $totalMortalityPcs);
+
+        // 3. Survival Rate (SR %)
+        $survivalRate = $batch->initial_seed_count > 0 
+            ? round(($currentPopulationPcs / $batch->initial_seed_count) * 100, 2) 
+            : 0;
+
+        // 4. Sampling Terakhir & MBW Terkini
+        $latestSampling = $batch->samplingLog->first();
+        $latestMbwG = $latestSampling ? $latestSampling->avg_weight_g : $batch->initial_avg_weight_g;
+
+        // 5. Estimasi Biomassa Saat Ini (Kg)
+        $currentBiomassKg = ($currentPopulationPcs * $latestMbwG) / 1000;
+
+        // 6. Total Pakan Terpakai (Kg)
+        $totalFeedKg = $batch->dailyFeedLog->sum('amount_kg');
+
+        // 7. Kalkulasi FCR Sementara (Feed Conversion Ratio)
+        // Gain Biomassa = Biomassa Saat Ini - Biomassa Awal
+        $biomassGainKg = $currentBiomassKg - $batch->initial_total_weight_kg;
+        $fcr = ($biomassGainKg > 0 && $totalFeedKg > 0) 
+            ? round($totalFeedKg / $biomassGainKg, 2) 
+            : 0;
+
+        return view('tenant.batches.show', compact(
+            'batch',
+            'doc',
+            'totalMortalityPcs',
+            'currentPopulationPcs',
+            'survivalRate',
+            'latestMbwG',
+            'currentBiomassKg',
+            'totalFeedKg',
+            'fcr'
+        ));
+    }
 }

@@ -60,8 +60,14 @@
             <a href="/tenant/batches" class="nav-item {{ request()->is('tenant/batches*') ? 'active' : '' }}">
                 <span>🔄</span> Siklus
             </a>
+            
             <a href="/tenant/harvests" class="nav-item {{ request()->is('tenant/harvests*') ? 'active' : '' }}">
                 <span>🌾</span> Panen
+            </a>
+
+            <div class="nav-section"><span>📦</span> Stok</div>
+            <a href="/tenant/inventory/feed" class="nav-item {{ request()->is('tenant/inventory/feed*') ? 'active' : '' }}">
+                <span>🌾</span> Pakan
             </a>
 
             <div class="nav-section">Harian</div>
